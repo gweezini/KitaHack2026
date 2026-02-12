@@ -13,6 +13,7 @@ class _LoginPageState extends State<LoginPage> {
   late TextEditingController _emailController;
   late TextEditingController _passwordController;
   bool _obscurePassword = true;
+  bool _isAdminLogin = false;
   final _formKey = GlobalKey<FormState>();
 
   @override
@@ -34,6 +35,7 @@ class _LoginPageState extends State<LoginPage> {
       context.read<AuthProvider>().login(
             _emailController.text.trim(),
             _passwordController.text,
+            isAdmin: _isAdminLogin,
           );
     }
   }
@@ -94,7 +96,49 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                     ),
 
-                    // Error message
+                    // Admin toggle
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade100,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.grey.shade300),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(
+                                _isAdminLogin ? Icons.admin_panel_settings : Icons.person,
+                                color: _isAdminLogin ? Colors.orange.shade700 : Colors.blue.shade700,
+                              ),
+                              const SizedBox(width: 12),
+                              Text(
+                                _isAdminLogin ? 'Admin Login' : 'Student Login',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: _isAdminLogin ? Colors.orange.shade700 : Colors.blue.shade700,
+                                ),
+                              ),
+                            ],
+                          ),
+                          Switch(
+                            value: _isAdminLogin,
+                            onChanged: (value) {
+                              setState(() {
+                                _isAdminLogin = value;
+                                authProvider.clearError();
+                              });
+                            },
+                            activeColor: Colors.orange.shade700,
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 24),
                     if (authProvider.errorMessage != null)
                       Container(
                         margin: const EdgeInsets.only(bottom: 16),
@@ -138,7 +182,7 @@ class _LoginPageState extends State<LoginPage> {
                     TextFormField(
                       controller: _emailController,
                       decoration: InputDecoration(
-                        hintText: 'student@university.edu',
+                        hintText: _isAdminLogin ? 'admin@university.admin' : 'student@university.edu',
                         labelText: 'Email Address',
                         prefixIcon: const Icon(Icons.email),
                         border: OutlineInputBorder(
@@ -158,6 +202,9 @@ class _LoginPageState extends State<LoginPage> {
                         }
                         if (!value.contains('@')) {
                           return 'Please enter a valid email';
+                        }
+                        if (_isAdminLogin && !value.endsWith('@university.admin')) {
+                          return 'Admin email must end with @university.admin';
                         }
                         return null;
                       },
