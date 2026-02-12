@@ -86,18 +86,18 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
             },
           ),
           // Menu
-          PopupMenuButton(
+          PopupMenuButton<String>(
             itemBuilder: (context) => [
-              const PopupMenuItem(
+              const PopupMenuItem<String>(
                 value: 'profile',
                 child: Text('Profile'),
               ),
-              const PopupMenuItem(
+              const PopupMenuItem<String>(
                 value: 'settings',
                 child: Text('Settings'),
               ),
               const PopupMenuDivider(),
-              const PopupMenuItem(
+              const PopupMenuItem<String>(
                 value: 'logout',
                 child: Text('Logout'),
               ),

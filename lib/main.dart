@@ -5,7 +5,6 @@ import 'services/firebase_auth_service.dart';
 import 'services/notification_service.dart';
 import 'screens/login_screen.dart';
 import 'screens/student_home_screen.dart';
-import 'screens/admin_scanner_screen.dart';
 
 /// Entry point for the University Parcel Tracker Application
 void main() async {

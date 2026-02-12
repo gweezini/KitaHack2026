@@ -163,26 +163,6 @@ class _AdminScannerScreenState extends State<AdminScannerScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: 16),
-
-              // Raw text (debugging)
-              if (false) // TODO: Add debug toggle
-                ExpansionTile(
-                  title: const Text('Raw Text (Debug)'),
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade100,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        result.rawText,
-                        style: const TextStyle(fontSize: 12, fontFamily: 'monospace'),
-                      ),
-                    ),
-                  ],
-                ),
             ],
           ),
         ),

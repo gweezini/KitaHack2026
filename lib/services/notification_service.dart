@@ -23,7 +23,6 @@ class NotificationService {
         alert: true,
         announcement: false,
         badge: true,
-        carryForward: true,
         criticalAlert: false,
         provisional: false,
         sound: true,
@@ -111,13 +110,14 @@ class NotificationService {
   Future<void> sendLateChalgeNotification(
       Parcel parcel, double charge, String recipientFCMToken) async {
     try {
-      final notificationData = {
-        'title': 'Late Claim Charge Applied',
-        'body': 'A late claim charge of \$$charge has been applied to your parcel.',
-        'parcelId': parcel.parcelId,
-        'trackingNumber': parcel.trackingNumber,
-        'action': 'open_payment_page',
-      };
+      // TODO: Implement notification sending with payment gateway
+      // final notificationData = {
+      //   'title': 'Late Claim Charge Applied',
+      //   'body': 'A late claim charge of \$$charge has been applied to your parcel.',
+      //   'parcelId': parcel.parcelId,
+      //   'trackingNumber': parcel.trackingNumber,
+      //   'action': 'open_payment_page',
+      // };
 
       print('TODO: Send late charge notification');
     } catch (e) {

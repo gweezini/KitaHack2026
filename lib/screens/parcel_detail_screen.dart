@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/parcel_model.dart';
 import '../services/firestore_service.dart';
-import '../services/eta_service.dart';
 
 class ParcelDetailScreen extends StatefulWidget {
   final String parcelId;
@@ -22,7 +21,6 @@ class ParcelDetailScreen extends StatefulWidget {
 
 class _ParcelDetailScreenState extends State<ParcelDetailScreen> {
   final _firestoreService = FirestoreService();
-  final _etaService = ETAService();
 
   late Future<Parcel?> _parcelFuture;
 
@@ -206,7 +204,10 @@ class _ParcelDetailScreenState extends State<ParcelDetailScreen> {
 
     return Card(
       color: statusColor.withOpacity(0.1),
-      border: Border.all(color: statusColor),
+      shape: RoundedRectangleBorder(
+        side: BorderSide(color: statusColor),
+        borderRadius: BorderRadius.circular(12),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Row(
