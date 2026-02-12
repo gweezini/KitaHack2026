@@ -13,6 +13,7 @@ class FirebaseConfig {
   static const String logsCollection = 'activity_logs';
 }
 
+
 /// App Configuration
 class AppConfig {
   // Grace period before late charges apply (in days)
