@@ -56,8 +56,123 @@ class HomePage extends StatelessWidget {
           ),
         ],
       ),
-      body: const Center(
-        child: Text('Welcome to KitaHack University Parcels!'),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text(
+              'Welcome to KitaHack University Parcels!',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 48),
+            _StudentButton(
+              title: 'Track Parcel',
+              icon: Icons.local_shipping,
+              color: Colors.blue,
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const TrackParcelPage(),
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 16),
+            _StudentButton(
+              title: 'Overdue Charges',
+              icon: Icons.receipt,
+              color: Colors.orange,
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const OverdueChargesPage(),
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 16),
+            _StudentButton(
+              title: 'History',
+              icon: Icons.history,
+              color: Colors.purple,
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const HistoryPage(),
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _StudentButton extends StatelessWidget {
+  final String title;
+  final IconData icon;
+  final Color color;
+  final VoidCallback onPressed;
+
+  const _StudentButton({
+    required this.title,
+    required this.icon,
+    required this.color,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: color.withOpacity(0.3),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Material(
+        color: color,
+        borderRadius: BorderRadius.circular(12),
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+            child: Row(
+              children: [
+                Icon(
+                  icon,
+                  size: 32,
+                  color: Colors.white,
+                ),
+                const SizedBox(width: 16),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -155,6 +270,131 @@ class _AdminCard extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+// Placeholder Pages
+
+class TrackParcelPage extends StatelessWidget {
+  const TrackParcelPage({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Track Parcel'),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.local_shipping,
+              size: 64,
+              color: Colors.blue.shade300,
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Track Parcel',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Placeholder Page',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey.shade600,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class OverdueChargesPage extends StatelessWidget {
+  const OverdueChargesPage({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Overdue Charges'),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.receipt,
+              size: 64,
+              color: Colors.orange.shade300,
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Overdue Charges',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Placeholder Page',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey.shade600,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class HistoryPage extends StatelessWidget {
+  const HistoryPage({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('History'),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.history,
+              size: 64,
+              color: Colors.purple.shade300,
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'History',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Placeholder Page',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey.shade600,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
