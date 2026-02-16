@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "391327390609",
+    "project_id": "parcelkita-b53af",
+    "storage_bucket": "parcelkita-b53af.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:391327390609:android:02c1741241ea225b57d830",
+        "android_client_info": {
+          "package_name": "com.example.kita_hack_2026"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBwLdSSM_rHrVp7nl0HgV8I8G9CmIctCPc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
