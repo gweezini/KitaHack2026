@@ -1,9 +1,32 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart'; // For kIsWeb
+import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
 import 'providers/auth_provider.dart';
 import 'pages/login_page.dart';
+import 'pages/admin/ocr_scan_page.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  // Use platform-specific initialization
+  if (kIsWeb) {
+    // For Web
+    await Firebase.initializeApp(
+      options: const FirebaseOptions(
+        apiKey: "AIzaSyAEK6pS8wEnnB7PoVgqwejbX3_8CQwlVVI",
+        appId: "1:391327390609:web:702aa5c27150566e57d830",
+        messagingSenderId: "391327390609",
+        projectId: "parcelkita-b53af",
+        authDomain: "parcelkita-b53af.firebaseapp.com",
+        storageBucket: "parcelkita-b53af.firebasestorage.app",
+      ),
+    );
+  } else {
+    // For Android/iOS (uses google-services.json)
+    await Firebase.initializeApp();
+  }
+  
   runApp(const MyApp());
 }
 
@@ -21,11 +44,20 @@ class MyApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(
-            seedColor: Colors.blue,
-            brightness: Brightness.light,
+            seedColor: Colors.deepOrange, // this one i changed to deep orange 
+            brightness: Brightness.light, // set as light mode
           ),
+
           useMaterial3: true,
+        //set button pattern
+          elevatedButtonTheme: ElevatedButtonThemeData(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.deepOrange,
+              foregroundColor: Colors.white, // its text is white
+            ),
+          ),
         ),
+
         home: Consumer<AuthProvider>(
           builder: (context, authProvider, _) {
             // Navigate based on authentication status
@@ -185,7 +217,7 @@ class AdminDashboard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Admin Dashboard'),
+        title: const Text('Admin Dashboard [TEST MODE]'),
         backgroundColor: Colors.orange.shade700,
         actions: [
           IconButton(
@@ -227,6 +259,18 @@ class AdminDashboard extends StatelessWidget {
             ),
           ],
         ),
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const OCRScanPage()),
+          );
+        },
+        label: const Text('Scan Parcel'),
+        icon: const Icon(Icons.camera_alt),
+        backgroundColor: Colors.deepOrange,
+        foregroundColor: Colors.white,
       ),
     );
   }
