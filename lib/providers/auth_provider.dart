@@ -1,61 +1,78 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class AuthProvider extends ChangeNotifier {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+
   bool _isLoading = false;
   String? _errorMessage;
   bool _isAuthenticated = false;
   bool _isAdmin = false;
 
+// Getters
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
   bool get isAuthenticated => _isAuthenticated;
   bool get isAdmin => _isAdmin;
 
-  Future<void> login(String email, String password, {bool isAdmin = false}) async {
+  AuthProvider() {
+    _auth.authStateChanges().listen((User? user) {
+      if (user != null) {
+        _isAuthenticated = true;
+        _isAdmin = user.email?.toLowerCase().contains('admin') ?? false;
+      } else {
+        _isAuthenticated = false;
+        _isAdmin = false;
+      }
+      notifyListeners();
+    });
+  }
+
+// Login Function
+  Future<void> login(String email, String password) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
-
     try {
-      // Simulate network delay
-      await Future.delayed(const Duration(seconds: 2));
-
-      // Basic validation
-      if (email.isEmpty || password.isEmpty) {
-        throw 'Email and password are required';
-      }
-
-      if (!email.contains('@')) {
-        throw 'Please enter a valid email address';
-      }
-
-      if (password.length < 6) {
-        throw 'Password must be at least 6 characters';
-      }
-
-      // Admin login validation
-      if (isAdmin && !email.endsWith('@university.admin')) {
-        throw 'Admin email must end with @university.admin';
-      }
-
-      // Simulate successful login
-      // In a real app, you would make an API call here
-      _isAuthenticated = true;
-      _isAdmin = isAdmin;
+      await _auth.signInWithEmailAndPassword(
+        email: email.trim(),
+        password: password.trim(),
+      );
+    } on FirebaseAuthException catch (e) {
+      _errorMessage = e.message ?? 'Login failed.';
     } catch (e) {
-      _errorMessage = e.toString();
-      _isAuthenticated = false;
-      _isAdmin = false;
+      _errorMessage = 'Connection failed.';
     } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
 
-  void logout() {
+// Register Function (Added this to fix your error)
+  Future<void> register(String email, String password) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+    try {
+      await _auth.createUserWithEmailAndPassword(
+        email: email.trim(),
+        password: password.trim(),
+      );
+    } on FirebaseAuthException catch (e) {
+      _errorMessage = e.message ?? 'Registration failed.';
+    } catch (e) {
+      _errorMessage = 'An unexpected error occurred.';
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+// Logout Function
+  Future<void> logout() async {
+    await _auth.signOut();
     _isAuthenticated = false;
     _isAdmin = false;
-    _errorMessage = null;
     notifyListeners();
   }
 
