@@ -6,14 +6,19 @@ class PendingParcelsPage extends StatelessWidget {
   const PendingParcelsPage({Key? key}) : super(key: key);
 
   // Function to mark a parcel as collected
-  Future<void> _markAsCollected(BuildContext context, String parcelId) async {
+  Future<void> _markAsCollected(BuildContext context, String parcelId,
+      String parcelType, Timestamp? arrivalDate) async {
     try {
+      // Calculate the charge at the moment of collection
+      final charge = _calculateOverdueCharge(parcelType, arrivalDate);
+
       await FirebaseFirestore.instance
           .collection('parcels')
           .doc(parcelId)
           .update({
         'status': 'Collected',
         'collectedAt': FieldValue.serverTimestamp(),
+        'overdueCharge': charge, // Save the calculated charge
       });
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -160,7 +165,8 @@ class PendingParcelsPage extends StatelessWidget {
                     ],
                   ),
                   trailing: ElevatedButton(
-                    onPressed: () => _markAsCollected(context, parcelDoc.id),
+                    onPressed: () => _markAsCollected(
+                        context, parcelDoc.id, parcelType, arrivalDate),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.green,
                       shape: RoundedRectangleBorder(
