@@ -43,7 +43,6 @@ class PendingParcelsPage extends StatelessWidget {
         stream: FirebaseFirestore.instance
             .collection('parcels')
             .where('status', isEqualTo: 'Pending Pickup')
-            .orderBy('arrivalDate', descending: true)
             .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
