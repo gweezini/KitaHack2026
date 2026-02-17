@@ -11,6 +11,7 @@ import 'pages/overdue_charges_page.dart';
 import 'pages/admin/pending_parcels_page.dart';
 import 'pages/track_parcel_page.dart';
 import 'pages/notification_page.dart';
+import 'pages/history_page.dart';
 import 'services/notification_service.dart';
 
 void main() async {
@@ -91,7 +92,7 @@ class HomePage extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.white, // Match Login Page background
       appBar: AppBar(
-        title: const Text('University Parcel', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text('ParcelKita', style: TextStyle(fontWeight: FontWeight.bold)),
         centerTitle: true,
         backgroundColor: Colors.deepOrange,
         foregroundColor: Colors.white,
@@ -304,7 +305,7 @@ class HomePage extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             const Text(
-              'University Parcel',
+              'ParcelKita',
               style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,

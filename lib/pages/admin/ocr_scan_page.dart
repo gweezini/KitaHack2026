@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:kita_hack_2026/pages/admin/verify_collection_page.dart';
 
 class OCRScanPage extends StatefulWidget {
   const OCRScanPage({super.key});
@@ -25,6 +26,7 @@ class _OCRScanPageState extends State<OCRScanPage> {
   String _parcelType = 'Parcel';
   final List<String> _parcelTypes = ['Parcel', 'Letter', 'Document'];
   bool _isProcessing = false;
+  bool _isSearching = false;
 
   @override
   void dispose() {
@@ -305,7 +307,11 @@ class _OCRScanPageState extends State<OCRScanPage> {
            return true; // Consider selection dialog as "found"
         }
       } else {
-        _showSnackBar('Phone found, but no user registered. Trying Name...');
+        if (_isSearching) {
+          _showSnackBar('No user found with this phone number.');
+        } else {
+          _showSnackBar('Phone found, but no user registered. Trying Name...');
+        }
         return false;
       }
     } catch (e) {
@@ -469,6 +475,18 @@ class _OCRScanPageState extends State<OCRScanPage> {
         title: const Text('Scan & Register Parcel'),
         backgroundColor: Colors.deepOrange,
         foregroundColor: Colors.white,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.qr_code_scanner),
+            tooltip: 'Verify Collection',
+            onPressed: () {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const VerifyCollectionPage()));
+            },
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -534,7 +552,29 @@ class _OCRScanPageState extends State<OCRScanPage> {
              // New Phone Field
             TextField(
               controller: _phoneController,
-              decoration: const InputDecoration(labelText: 'Phone Number', border: OutlineInputBorder(), prefixIcon: Icon(Icons.phone)),
+              keyboardType: TextInputType.phone,
+              decoration: InputDecoration(
+                labelText: 'Phone Number',
+                border: const OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.phone),
+                suffixIcon: _isSearching
+                    ? Transform.scale(
+                        scale: 0.5,
+                        child: const CircularProgressIndicator(strokeWidth: 3),
+                      )
+                    : IconButton(
+                        icon: const Icon(Icons.search),
+                        onPressed: () async {
+                          if (_phoneController.text.isNotEmpty) {
+                            setState(() => _isSearching = true);
+                            await _handlePhoneLookup(_phoneController.text);
+                            setState(() => _isSearching = false);
+                          } else {
+                            _showSnackBar('Enter a phone number first');
+                          }
+                        },
+                      ),
+              ),
             ),
             const SizedBox(height: 15),
             DropdownButtonFormField<String>(
