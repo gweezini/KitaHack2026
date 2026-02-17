@@ -6,6 +6,7 @@ import 'providers/auth_provider.dart';
 import 'pages/login_page.dart';
 import 'pages/admin/ocr_scan_page.dart';
 import 'pages/admin/users_list_page.dart';
+import 'pages/overdue_charges_page.dart';
 import 'pages/admin/pending_parcels_page.dart';
 
 void main() async {
@@ -126,7 +127,7 @@ class HomePage extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const OverdueChargesPage(),
+                    builder: (context) => const OverdueChargesPage(), // Now links to the real page
                   ),
                 );
               },
@@ -314,47 +315,6 @@ class TrackParcelPage extends StatelessWidget {
             const SizedBox(height: 16),
             const Text(
               'Track Parcel',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Placeholder Page',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey.shade600,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class OverdueChargesPage extends StatelessWidget {
-  const OverdueChargesPage({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Overdue Charges'),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.receipt,
-              size: 64,
-              color: Colors.orange.shade300,
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'Overdue Charges',
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
