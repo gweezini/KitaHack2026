@@ -14,7 +14,6 @@ class _LoginPageState extends State<LoginPage> {
   late TextEditingController _emailController;
   late TextEditingController _passwordController;
   bool _obscurePassword = true;
-  bool _isAdminLogin = false;
   final _formKey = GlobalKey<FormState>();
 
   @override
@@ -83,47 +82,6 @@ class _LoginPageState extends State<LoginPage> {
                         style: TextStyle(
                             fontSize: 14, color: Colors.grey.shade600)),
                     const SizedBox(height: 30),
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade100,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.grey.shade300),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Row(
-                            children: [
-                              Icon(
-                                  _isAdminLogin
-                                      ? Icons.admin_panel_settings
-                                      : Icons.person,
-                                  color: Colors.deepOrange),
-                              const SizedBox(width: 12),
-                              Text(
-                                  _isAdminLogin
-                                      ? 'Admin Login'
-                                      : 'Student Login',
-                                  style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.deepOrange)),
-                            ],
-                          ),
-                          Switch(
-                            value: _isAdminLogin,
-                            activeColor: Colors.deepOrange,
-                            onChanged: (value) {
-                              setState(() {
-                                _isAdminLogin = value;
-                                authProvider.clearError();
-                              });
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 24),
                     if (authProvider.errorMessage != null)
                       Text(authProvider.errorMessage!,
                           style: const TextStyle(
