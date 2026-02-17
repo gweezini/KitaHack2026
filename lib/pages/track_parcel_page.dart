@@ -162,20 +162,28 @@ class _VerifyParcelPageState extends State<VerifyParcelPage> {
   final _picker = ImagePicker();
   final _textRecognizer = TextRecognizer(script: TextRecognitionScript.latin);
 
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _scanAndVerify();
+      }
+    });
+  }
+
   Future<void> _scanAndVerify() async {
     setState(() => _isProcessing = true);
     try {
       final pickedFile = await _picker.pickImage(source: ImageSource.camera);
       if (pickedFile == null) {
-        setState(() => _isProcessing = false);
+        if (mounted) Navigator.of(context).pop(); // User cancelled
         return;
       }
 
       final inputImage = InputImage.fromFile(File(pickedFile.path));
       final recognizedText = await _textRecognizer.processImage(inputImage);
 
-      // Check if tracking number exists in scanned text
-      // We remove spaces to make matching robust
       final scannedText =
           recognizedText.text.replaceAll(RegExp(r'\s+'), '').toUpperCase();
       final targetTracking =
@@ -192,6 +200,7 @@ class _VerifyParcelPageState extends State<VerifyParcelPage> {
               backgroundColor: Colors.red,
             ),
           );
+          Navigator.of(context).pop(); // Go back on failure
         }
       }
     } catch (e) {
@@ -199,9 +208,8 @@ class _VerifyParcelPageState extends State<VerifyParcelPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error: $e')),
         );
+        Navigator.of(context).pop(); // Go back on error
       }
-    } finally {
-      if (mounted) setState(() => _isProcessing = false);
     }
   }
 
@@ -315,18 +323,8 @@ class _VerifyParcelPageState extends State<VerifyParcelPage> {
               style: TextStyle(color: Colors.grey),
             ),
             const SizedBox(height: 48),
-            if (_isProcessing)
-              const Center(child: CircularProgressIndicator())
-            else
-              ElevatedButton.icon(
-                onPressed: _scanAndVerify,
-                icon: const Icon(Icons.camera_alt),
-                label: const Text('Scan Label'),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.all(16),
-                  textStyle: const TextStyle(fontSize: 18),
-                ),
-              ),
+            // The scan process is now automatic.
+            const Center(child: CircularProgressIndicator()),
           ],
         ),
       ),
