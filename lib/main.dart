@@ -13,6 +13,7 @@ import 'pages/track_parcel_page.dart';
 import 'pages/notification_page.dart';
 import 'pages/history_page.dart';
 import 'services/notification_service.dart';
+import 'package:kita_hack_2026/pages/admin/verify_collection_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -520,6 +521,25 @@ class AdminDashboard extends StatelessWidget {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
                   backgroundColor: Colors.blue.shade700,
+                  foregroundColor: Colors.white,
+                  textStyle: const TextStyle(fontSize: 16),
+                ),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const VerifyCollectionPage()),
+                  );
+                },
+                icon: const Icon(Icons.qr_code_scanner),
+                label: const Text('Verify Collection'),
+                style: ElevatedButton.styleFrom(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                  backgroundColor: Colors.green.shade700,
                   foregroundColor: Colors.white,
                   textStyle: const TextStyle(fontSize: 16),
                 ),
