@@ -1,9 +1,10 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'pre_alert_page.dart';
+import 'dart:async';
 
 class TrackParcelPage extends StatefulWidget {
   const TrackParcelPage({Key? key}) : super(key: key);
@@ -15,6 +16,8 @@ class TrackParcelPage extends StatefulWidget {
 class _TrackParcelPageState extends State<TrackParcelPage> {
   String? _studentId;
   bool _isLoadingId = true;
+  final _searchController = TextEditingController();
+  String _searchQuery = "";
 
   @override
   void initState() {
@@ -22,11 +25,15 @@ class _TrackParcelPageState extends State<TrackParcelPage> {
     _fetchStudentId();
   }
 
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
   Future<void> _fetchStudentId() async {
     final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser == null) {
-      // If no user is logged in, we can't fetch a student ID.
-      // The UI will show 'Student ID not found' after loading.
       return;
     }
     try {
@@ -58,86 +65,150 @@ class _TrackParcelPageState extends State<TrackParcelPage> {
         backgroundColor: Colors.blue,
         foregroundColor: Colors.white,
       ),
-      body: _isLoadingId
-          ? const Center(child: CircularProgressIndicator())
-          : _studentId == null
-              ? const Center(child: Text('Student ID not found.'))
-              : StreamBuilder<QuerySnapshot>(
-                  stream: FirebaseFirestore.instance
-                      .collection('parcels')
-                      .where('studentId', isEqualTo: _studentId)
-                      .where('status', isEqualTo: 'Pending Pickup')
-                      .snapshots(),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(child: CircularProgressIndicator());
-                    }
-                    if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                      return const Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.inventory_2_outlined,
-                                size: 80, color: Colors.grey),
-                            SizedBox(height: 16),
-                            Text('No pending parcels.',
-                                style: TextStyle(fontSize: 18)),
-                          ],
-                        ),
+      body: Column(
+        children: [
+          // Search & Pre-Alert Area
+          Container(
+            padding: const EdgeInsets.all(16),
+            color: Colors.blue.withOpacity(0.1),
+            child: Column(
+              children: [
+                TextField(
+                  controller: _searchController,
+                  decoration: InputDecoration(
+                    hintText: 'Search by Tracking Number...',
+                    prefixIcon: const Icon(Icons.search),
+                    filled: true,
+                    fillColor: Colors.white,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                  onChanged: (val) {
+                    setState(() {
+                      _searchQuery = val.trim().toUpperCase();
+                    });
+                  },
+                ),
+                const SizedBox(height: 10),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const PreAlertPage()),
                       );
-                    }
+                    },
+                    icon: const Icon(Icons.notification_add, size: 18),
+                    label: const Text('Expecting a parcel? Pre-alert us!'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.deepOrange,
+                      side: const BorderSide(color: Colors.deepOrange),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
 
-                    final parcels = snapshot.data!.docs;
+          Expanded(
+            child: _isLoadingId
+                ? const Center(child: CircularProgressIndicator())
+                : _studentId == null
+                    ? const Center(child: Text('Student ID not found.'))
+                    : StreamBuilder<QuerySnapshot>(
+                        stream: FirebaseFirestore.instance
+                            .collection('parcels')
+                            .where('studentId', isEqualTo: _studentId)
+                            .where('status', isEqualTo: 'Pending Pickup')
+                            .snapshots(),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const Center(
+                                child: CircularProgressIndicator());
+                          }
+                          if (!snapshot.hasData ||
+                              snapshot.data!.docs.isEmpty) {
+                            return const Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.inventory_2_outlined,
+                                      size: 80, color: Colors.grey),
+                                  SizedBox(height: 16),
+                                  Text('No pending parcels.',
+                                      style: TextStyle(fontSize: 18)),
+                                ],
+                              ),
+                            );
+                          }
 
-                    return ListView.builder(
-                      itemCount: parcels.length,
-                      itemBuilder: (context, index) {
-                        final parcelDoc = parcels[index];
-                        final parcel = parcelDoc.data() as Map<String, dynamic>;
-                        final trackingNumber =
-                            parcel['trackingNumber'] as String? ?? 'N/A';
-                        final arrivalDate = parcel['arrivalDate'] as Timestamp?;
-                        final type = parcel['type'] as String? ?? 'Parcel';
+                          final parcels = snapshot.data!.docs;
 
-                        String arrivalDateFormatted = 'Unknown';
-                        if (arrivalDate != null) {
-                          arrivalDateFormatted =
-                              DateFormat('d MMM yyyy, h:mm a')
-                                  .format(arrivalDate.toDate());
-                        }
+                          return ListView.builder(
+                            itemCount: parcels.length,
+                            itemBuilder: (context, index) {
+                              final parcelDoc = parcels[index];
+                              final parcel =
+                                  parcelDoc.data() as Map<String, dynamic>;
+                              final trackingNumber =
+                                  parcel['trackingNumber'] as String? ?? 'N/A';
+                              final arrivalDate =
+                                  parcel['arrivalDate'] as Timestamp?;
+                              final type =
+                                  parcel['type'] as String? ?? 'Parcel';
 
-                        return Card(
-                          margin: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 8),
-                          child: ListTile(
-                            leading: CircleAvatar(
-                              backgroundColor: Colors.blue.shade100,
-                              child: const Icon(Icons.local_shipping,
-                                  color: Colors.blue),
-                            ),
-                            title: Text(trackingNumber),
-                            subtitle: Text(
-                                'Arrived: $arrivalDateFormatted\nType: $type'),
-                            trailing: const Icon(Icons.qr_code_scanner),
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => VerifyParcelPage(
-                                    parcelId: parcelDoc.id,
-                                    trackingNumber: trackingNumber,
-                                    arrivalDate: arrivalDate,
-                                    type: type,
+                              if (_searchQuery.isNotEmpty &&
+                                  !trackingNumber.contains(_searchQuery)) {
+                                return const SizedBox.shrink();
+                              }
+
+                              String arrivalDateFormatted = 'Unknown';
+                              if (arrivalDate != null) {
+                                arrivalDateFormatted =
+                                    DateFormat('d MMM yyyy, h:mm a')
+                                        .format(arrivalDate.toDate());
+                              }
+
+                              return Card(
+                                margin: const EdgeInsets.symmetric(
+                                    horizontal: 16, vertical: 8),
+                                child: ListTile(
+                                  leading: CircleAvatar(
+                                    backgroundColor: Colors.blue.shade100,
+                                    child: const Icon(Icons.local_shipping,
+                                        color: Colors.blue),
                                   ),
+                                  title: Text(trackingNumber),
+                                  subtitle: Text(
+                                      'Arrived: $arrivalDateFormatted\nType: $type'),
+                                  trailing: const Icon(Icons.qr_code_scanner),
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => VerifyParcelPage(
+                                          parcelId: parcelDoc.id,
+                                          trackingNumber: trackingNumber,
+                                          arrivalDate: arrivalDate,
+                                          type: type,
+                                        ),
+                                      ),
+                                    );
+                                  },
                                 ),
                               );
                             },
-                          ),
-                        );
-                      },
-                    );
-                  },
-                ),
+                          );
+                        },
+                      ),
+          ),
+        ],
+      ),
     );
   }
 }
