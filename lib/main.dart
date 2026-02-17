@@ -9,6 +9,7 @@ import 'pages/admin/users_list_page.dart';
 import 'pages/overdue_charges_page.dart';
 import 'pages/admin/pending_parcels_page.dart';
 import 'pages/track_parcel_page.dart';
+import 'pages/notification_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -106,6 +107,20 @@ class HomePage extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 48),
+            _StudentButton(
+              title: 'Notifications',
+              icon: Icons.notifications,
+              color: Colors.redAccent, // Distinct color
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => NotificationPage(),
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 16),
             _StudentButton(
               title: 'Track Parcel',
               icon: Icons.local_shipping,

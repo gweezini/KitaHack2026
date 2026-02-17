@@ -20,6 +20,7 @@ class _OCRScanPageState extends State<OCRScanPage> {
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController(); // New Phone Controller
   final _idController = TextEditingController();
+  final _storageLocationController = TextEditingController(); // Storage Location
 
   String _parcelType = 'Parcel';
   final List<String> _parcelTypes = ['Parcel', 'Letter', 'Document'];
@@ -32,6 +33,7 @@ class _OCRScanPageState extends State<OCRScanPage> {
     _nameController.dispose();
     _phoneController.dispose();
     _idController.dispose();
+    _storageLocationController.dispose();
     super.dispose();
   }
 
@@ -134,7 +136,7 @@ class _OCRScanPageState extends State<OCRScanPage> {
               }
         }
 
-        // 2. Enhanced Name Extraction Logic for Shopee labels
+        // Enhanced Name Extraction Logic for Shopee labels
         // Even if the line has numbers, try to extract name
         String nameOnly = upperLine;
         
@@ -144,12 +146,12 @@ class _OCRScanPageState extends State<OCRScanPage> {
           nameOnly = upperLine.substring(0, addressIndex).trim();
         }
 
-        // Clean leading keywords (Handles common OCR typos like "JAME" for "NAME")
+        // Clean leading keywords (Handles common OCR typos like "JAME" for "NAME") because sometimes it cut as half
         String finalPotentialName = _normalizeNameForSearch(nameOnly)
             .replaceFirst(RegExp(r'^(NAME|RECIPIENT|PENERIMA|TO|SHIP TO|BUYER|JAME|TECIPIENT|ENDER)\s+'), '')
             .trim();
 
-        // 3. Core Change: Allow lines with numbers if they look like names
+        // Core Change: Allow lines with numbers if they look like names
         // Do not exclude based on isTracking or digits presence
         if (finalPotentialName.length > 3 && finalPotentialName.split(' ').length >= 2) {
            // Exclude logistics company names
@@ -414,23 +416,42 @@ class _OCRScanPageState extends State<OCRScanPage> {
   Future<void> _saveParcel() async {
     if (_trackingController.text.isEmpty || 
         _phoneController.text.isEmpty || 
-        _nameController.text.isEmpty) {
-      _showSnackBar('Tracking, phone number and name are required!');
+        _nameController.text.isEmpty ||
+        _storageLocationController.text.isEmpty) { // Require Storage Location
+      _showSnackBar('Tracking, phone, name and storage location are required!');
       return;
     }
 
     try {
-      await FirebaseFirestore.instance.collection('parcels').add({
+      // 1. Save Parcel with 'Pending Pickup' status
+      DocumentReference parcelRef = await FirebaseFirestore.instance.collection('parcels').add({
         'trackingNumber': _trackingController.text.trim(),
         'studentName': _nameController.text.trim(),
         'studentId': _idController.text.trim(),
         'phoneNumber': _phoneController.text.trim(),
+        'storageLocation': _storageLocationController.text.trim(),
         'type': _parcelType,
-        'status': 'Pending Pickup',
+        'status': 'Pending Pickup', // Updated Status
         'arrivalDate': FieldValue.serverTimestamp(),
       });
 
-      _showSnackBar('Parcel Registered Successfully!');
+      // 2. Send Notification (if studentId exists)
+      if (_idController.text.isNotEmpty) {
+         try {
+           await FirebaseFirestore.instance.collection('notifications').add({
+             'studentId': _idController.text.trim(),
+             'title': 'Parcel Arrived',
+             'message': 'Your parcel (${_trackingController.text}) is ready for pickup at ${_storageLocationController.text.trim()}.',
+             'parcelId': parcelRef.id,
+             'isRead': false,
+             'timestamp': FieldValue.serverTimestamp(),
+           });
+         } catch (e) {
+           print("Notification Error: $e");
+         }
+      }
+
+      _showSnackBar('Parcel Registered & User Notified!');
       if (mounted) Navigator.pop(context);
     } catch (e) {
       _showSnackBar('Save Error: $e');
@@ -531,6 +552,11 @@ class _OCRScanPageState extends State<OCRScanPage> {
             TextField(
               controller: _nameController,
               decoration: const InputDecoration(labelText: 'Full Name', border: OutlineInputBorder(), prefixIcon: Icon(Icons.person)),
+            ),
+            const SizedBox(height: 15),
+            TextField(
+              controller: _storageLocationController,
+              decoration: const InputDecoration(labelText: 'Storage Location (Shelf)', border: OutlineInputBorder(), prefixIcon: Icon(Icons.shelves)),
             ),
             
             const SizedBox(height: 30),

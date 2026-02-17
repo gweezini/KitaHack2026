@@ -44,3 +44,8 @@ android {
 flutter {
     source = "../.."
 }
+
+dependencies {
+    // Bundled ML Kit Text Recognition (prevents download prompt)
+    implementation("com.google.mlkit:text-recognition:16.0.0")
+}

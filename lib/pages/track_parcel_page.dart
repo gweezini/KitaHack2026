@@ -63,7 +63,7 @@ class _TrackParcelPageState extends State<TrackParcelPage> {
                   stream: FirebaseFirestore.instance
                       .collection('parcels')
                       .where('studentId', isEqualTo: _studentId)
-                      .where('status', isEqualTo: 'Pending Pickup')
+                      .where('status', isEqualTo: 'Available for Pickup')
                       .orderBy('arrivalDate', descending: true)
                       .snapshots(),
                   builder: (context, snapshot) {
