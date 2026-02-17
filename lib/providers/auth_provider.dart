@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AuthProvider extends ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -54,10 +55,25 @@ class AuthProvider extends ChangeNotifier {
     _errorMessage = null;
     notifyListeners();
     try {
-      await _auth.createUserWithEmailAndPassword(
+      UserCredential userCredential =
+          await _auth.createUserWithEmailAndPassword(
         email: email.trim(),
         password: password.trim(),
       );
+      // After successful registration, save user details to Firestore
+      if (userCredential.user != null) {
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(userCredential.user!.uid)
+            .set({
+          'email': userCredential.user!.email,
+          'uid': userCredential.user!.uid,
+          'createdAt': Timestamp.now(),
+          'isAdmin':
+              userCredential.user!.email?.toLowerCase().contains('admin') ??
+                  false,
+        });
+      }
     } on FirebaseAuthException catch (e) {
       _errorMessage = e.message ?? 'Registration failed.';
     } catch (e) {
