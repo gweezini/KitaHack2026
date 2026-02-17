@@ -4,7 +4,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 
 class HistoryPage extends StatefulWidget {
-  const HistoryPage({Key? key}) : super(key: key);
+  final String? studentId; // Optional: If provided, shows history for this student
+  final String? studentName; // Optional: For display purposes
+
+  const HistoryPage({Key? key, this.studentId, this.studentName}) : super(key: key);
 
   @override
   State<HistoryPage> createState() => _HistoryPageState();
@@ -22,6 +25,17 @@ class _HistoryPageState extends State<HistoryPage> {
   }
 
   Future<void> _fetchStudentId() async {
+    // If studentId is passed from Admin, use it directly
+    if (widget.studentId != null) {
+      if (mounted) {
+        setState(() {
+          _studentId = widget.studentId;
+          _isLoadingId = false;
+        });
+      }
+      return;
+    }
+
     if (currentUser == null) {
       if (mounted) setState(() => _isLoadingId = false);
       return;
@@ -51,7 +65,9 @@ class _HistoryPageState extends State<HistoryPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Collection History'),
+        title: Text(widget.studentName != null 
+            ? '${widget.studentName}\'s History' 
+            : 'Collection History'),
         backgroundColor: Colors.purple,
         foregroundColor: Colors.white,
       ),
