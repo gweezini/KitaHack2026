@@ -525,75 +525,46 @@ class AdminDashboard extends StatelessWidget {
                   textStyle: const TextStyle(fontSize: 16),
                 ),
               ),
-              const SizedBox(height: 20),
-              ElevatedButton.icon(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const VerifyCollectionPage()),
-                  );
-                },
-                icon: const Icon(Icons.qr_code_scanner),
-                label: const Text('Verify Collection'),
-                style: ElevatedButton.styleFrom(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                  backgroundColor: Colors.green.shade700,
-                  foregroundColor: Colors.white,
-                  textStyle: const TextStyle(fontSize: 16),
-                ),
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton.icon(
-                onPressed: () async {
-                  final service = NotificationService();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Checking for overdue parcels...')));
-                  
-                  try {
-                    int count = await service.checkAndSendOverdueReminders(context);
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Sent $count reminders.'),
-                          backgroundColor: count > 0 ? Colors.green : Colors.blue,
-                        ),
-                      );
-                    }
-                  } catch (e) {
-                     if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
-                      );
-                    }
-                  }
-                },
-                icon: const Icon(Icons.notifications_active),
-                label: const Text('Send Due Date Reminders'),
-                style: ElevatedButton.styleFrom(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                  backgroundColor: Colors.redAccent.shade700,
-                  foregroundColor: Colors.white,
-                  textStyle: const TextStyle(fontSize: 16),
-                ),
-              ),
+
             ],
           ),
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const OCRScanPage()),
-          );
-        },
-        label: const Text('Scan Parcel'),
-        icon: const Icon(Icons.camera_alt),
-        backgroundColor: Colors.deepOrange,
-        foregroundColor: Colors.white,
+      floatingActionButton: IntrinsicWidth(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            FloatingActionButton.extended(
+              heroTag: 'verify',
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const VerifyCollectionPage()),
+                );
+              },
+              label: const Text('Scan for Pickup'),
+              icon: const Icon(Icons.qr_code_scanner),
+              backgroundColor: Colors.green,
+              foregroundColor: Colors.white,
+            ),
+            const SizedBox(height: 16),
+             FloatingActionButton.extended( // Add space to force re-render if needed
+              heroTag: 'scan',
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const OCRScanPage()),
+                );
+              },
+              label: const Text('Scan Parcel'),
+              icon: const Icon(Icons.camera_alt),
+              backgroundColor: Colors.deepOrange,
+              foregroundColor: Colors.white,
+            ),
+          ],
+        ),
       ),
     );
   }
