@@ -8,6 +8,7 @@ import 'pages/admin/ocr_scan_page.dart';
 import 'pages/admin/users_list_page.dart';
 import 'pages/overdue_charges_page.dart';
 import 'pages/admin/pending_parcels_page.dart';
+import 'pages/track_parcel_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -293,47 +294,6 @@ class AdminDashboard extends StatelessWidget {
 }
 
 // Placeholder Pages
-
-class TrackParcelPage extends StatelessWidget {
-  const TrackParcelPage({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Track Parcel'),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.local_shipping,
-              size: 64,
-              color: Colors.blue.shade300,
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'Track Parcel',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Placeholder Page',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey.shade600,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
 
 class HistoryPage extends StatelessWidget {
   const HistoryPage({Key? key}) : super(key: key);
