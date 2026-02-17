@@ -14,7 +14,7 @@ class PendingParcelsPage extends StatelessWidget {
     final parcelType = type.toLowerCase();
     double overdueCharge = 0.0;
 
-    final nonParcelTypes = ['letter', 'card', 'document', 'book'];
+    final nonParcelTypes = ['Letter','Document',];
 
     if (nonParcelTypes.contains(parcelType)) {
       // Overdue for non-parcels after 14 days
