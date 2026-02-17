@@ -446,7 +446,7 @@ class _OCRScanPageState extends State<OCRScanPage> {
            await FirebaseFirestore.instance.collection('notifications').add({
              'studentId': _idController.text.trim(),
              'title': 'Parcel Arrived',
-             'message': 'Your parcel (${_trackingController.text}) is ready for pickup at ${_storageLocationController.text.trim()}.',
+             'message': 'Your parcel (${_trackingController.text}) is ready for pickup.',
              'parcelId': parcelRef.id,
              'isRead': false,
              'timestamp': FieldValue.serverTimestamp(),
