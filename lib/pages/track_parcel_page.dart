@@ -64,7 +64,6 @@ class _TrackParcelPageState extends State<TrackParcelPage> {
                       .collection('parcels')
                       .where('studentId', isEqualTo: _studentId)
                       .where('status', isEqualTo: 'Pending Pickup')
-                      .orderBy('arrivalDate', descending: true)
                       .snapshots(),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
