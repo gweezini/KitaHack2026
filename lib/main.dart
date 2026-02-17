@@ -5,24 +5,13 @@ import 'package:cloud_firestore/cloud_firestore.dart'; // Added
 import 'package:provider/provider.dart';
 import 'providers/auth_provider.dart';
 import 'pages/login_page.dart';
-<<<<<<< HEAD
 import 'pages/admin/ocr_scan_page.dart';
 import 'pages/admin/users_list_page.dart';
 import 'pages/overdue_charges_page.dart';
 import 'pages/admin/pending_parcels_page.dart';
 import 'pages/track_parcel_page.dart';
-import 'pages/track_parcel_page.dart';
 import 'pages/notification_page.dart';
 import 'services/notification_service.dart';
-=======
-import 'pages/admin/ocr_scan_page.dart'; // Admin page
-import 'pages/admin/users_list_page.dart'; // Admin page
-import 'pages/overdue_charges_page.dart'; // Student page
-import 'pages/admin/pending_parcels_page.dart'; // Admin page
-import 'pages/track_parcel_page.dart'; // Student page
-import 'pages/notification_page.dart'; // Student page
-import 'pages/history_page.dart'; // Student page
->>>>>>> a184e91dfde0fedc07f72d37cbdb043425f6c02b
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -100,9 +89,13 @@ class HomePage extends StatelessWidget {
     final studentId = authProvider.studentId;
 
     return Scaffold(
-      backgroundColor: Colors.orange.shade50, // Light Orange Background for Home Page
+      backgroundColor: Colors.white, // Match Login Page background
       appBar: AppBar(
-        title: const Text('Dashboard'),
+        title: const Text('University Parcel', style: TextStyle(fontWeight: FontWeight.bold)),
+        centerTitle: true,
+        backgroundColor: Colors.deepOrange,
+        foregroundColor: Colors.white,
+        elevation: 0,
         actions: [
           // Notification Map
           StreamBuilder<QuerySnapshot>(
@@ -298,14 +291,29 @@ class HomePage extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-             const Text(
-              'Welcome to KitaHack University Parcels!',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
+            // Replaced generic welcome with branded icon and text
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                color: Colors.orange.shade100,
+                borderRadius: BorderRadius.circular(16),
               ),
-              textAlign: TextAlign.center,
+              child: const Icon(Icons.local_shipping,
+                  size: 40, color: Colors.deepOrange),
             ),
+            const SizedBox(height: 20),
+            const Text(
+              'University Parcel',
+              style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.deepOrange),
+            ),
+            const SizedBox(height: 8),
+            Text('Track your parcels with ease',
+                style: TextStyle(
+                    fontSize: 14, color: Colors.grey.shade600)),
             const SizedBox(height: 48),
             
             // Replaced Notifications Button with StreamBuilder above
