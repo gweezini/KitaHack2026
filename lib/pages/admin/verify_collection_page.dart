@@ -66,6 +66,12 @@ class _VerifyCollectionPageState extends State<VerifyCollectionPage> {
               Text('Tracking: ${data['trackingNumber'] ?? 'N/A'}'),
               Text('Name: ${data['studentName'] ?? 'N/A'}'),
               Text('Student ID: ${data['studentId'] ?? 'N/A'}'),
+              const SizedBox(height: 8),
+              Text(
+                'Location: ${data['storageLocation'] ?? 'N/A'}',
+                style:
+                    const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              ),
               const SizedBox(height: 16),
               Text(
                 'Overdue Charge: RM ${charge.toStringAsFixed(2)}',
@@ -134,15 +140,22 @@ class _VerifyCollectionPageState extends State<VerifyCollectionPage> {
     final nonParcelTypes = ['letter', 'card', 'document', 'book'];
 
     if (nonParcelTypes.contains(parcelType)) {
+      // Overdue for non-parcels after 14 days
       if (daysUncollected > 14) {
-        overdueCharge = (daysUncollected - 14) * 0.50;
+        overdueCharge = 0.5 + (daysUncollected - 14) * 0.50;
+      } else if (daysUncollected >= 0 && daysUncollected <= 14) {
+        overdueCharge = 0.5;
       }
     } else { // It's a parcel
+      // Overdue for parcels after 3 days
       if (daysUncollected > 14) {
-        overdueCharge = 2.00 + (daysUncollected - 14) * 0.50;
+        // After 14 days, fee is RM 3.00 + RM 0.50/day
+        overdueCharge = 3.00 + (daysUncollected - 14) * 0.50;
       } else if (daysUncollected > 7) {
-        overdueCharge = 2.00;
+        overdueCharge = 3.00;
       } else if (daysUncollected > 3) {
+        overdueCharge = 2.00;
+      } else {
         overdueCharge = 1.00;
       }
     }
