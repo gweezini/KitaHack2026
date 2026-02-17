@@ -167,6 +167,13 @@ class _OCRScanPageState extends State<OCRScanPage> {
         if (bestPhoneCandidate != null) _phoneController.text = bestPhoneCandidate;
       });
 
+      // === NEW: Check Pre-Alert First ===
+      if (bestTrackingCandidate != null) {
+         bool preAlertFound = await _checkPreAlert(bestTrackingCandidate);
+         if (preAlertFound) return; // Stop if pre-alert matched
+      }
+      // ===================================
+
       bool foundUser = false;
 
       if (bestPhoneCandidate != null) {
@@ -184,6 +191,41 @@ class _OCRScanPageState extends State<OCRScanPage> {
       _showSnackBar('OCR Error: $e');
     }
   }
+
+  // === Pre-Alert Logic ===
+  Future<bool> _checkPreAlert(String trackingNumber) async {
+    try {
+      final doc = await FirebaseFirestore.instance
+          .collection('pre_alerts')
+          .doc(trackingNumber)
+          .get();
+
+      if (doc.exists) {
+        final data = doc.data()!;
+        if (data['status'] == 'pending') {
+          setState(() {
+            _nameController.text = data['userName'] ?? '';
+            _phoneController.text = data['userPhone'] ?? '';
+            _idController.text = data['studentId'] ?? '';
+            
+            // Mark as Pre-Alert Match visually or toast
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('✅ Matched via PRE-ALERT!'),
+                backgroundColor: Colors.green,
+                duration: Duration(seconds: 3),
+              ),
+            );
+          });
+          return true;
+        }
+      }
+    } catch (e) {
+      print('Pre-alert check error: $e');
+    }
+    return false;
+  }
+  // =======================
 
   Future<void> _handleNameLookup(List<String> candidates) async {
     _showSnackBar('Searching database for names...');
