@@ -71,7 +71,7 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     const SizedBox(height: 20),
                     const Text(
-                      'University Parcel',
+                      'ParcelKita',
                       style: TextStyle(
                           fontSize: 28,
                           fontWeight: FontWeight.bold,
