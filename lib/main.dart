@@ -5,16 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart'; // Added
 import 'package:provider/provider.dart';
 import 'providers/auth_provider.dart';
 import 'pages/login_page.dart';
-<<<<<<< HEAD
-import 'pages/admin/ocr_scan_page.dart';
-import 'pages/admin/users_list_page.dart';
-import 'pages/overdue_charges_page.dart';
-import 'pages/admin/pending_parcels_page.dart';
-import 'pages/track_parcel_page.dart';
-import 'pages/track_parcel_page.dart';
-import 'pages/notification_page.dart';
-import 'services/notification_service.dart';
-=======
+
 import 'pages/admin/ocr_scan_page.dart'; // Admin page
 import 'pages/admin/users_list_page.dart'; // Admin page
 import 'pages/overdue_charges_page.dart'; // Student page
@@ -22,7 +13,7 @@ import 'pages/admin/pending_parcels_page.dart'; // Admin page
 import 'pages/track_parcel_page.dart'; // Student page
 import 'pages/notification_page.dart'; // Student page
 import 'pages/history_page.dart'; // Student page
->>>>>>> a184e91dfde0fedc07f72d37cbdb043425f6c02b
+import 'services/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
