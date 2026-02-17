@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart'; // Added
 import 'package:provider/provider.dart';
 import 'providers/auth_provider.dart';
 import 'pages/login_page.dart';
+<<<<<<< HEAD
 import 'pages/admin/ocr_scan_page.dart';
 import 'pages/admin/users_list_page.dart';
 import 'pages/overdue_charges_page.dart';
@@ -13,6 +14,15 @@ import 'pages/track_parcel_page.dart';
 import 'pages/track_parcel_page.dart';
 import 'pages/notification_page.dart';
 import 'services/notification_service.dart';
+=======
+import 'pages/admin/ocr_scan_page.dart'; // Admin page
+import 'pages/admin/users_list_page.dart'; // Admin page
+import 'pages/overdue_charges_page.dart'; // Student page
+import 'pages/admin/pending_parcels_page.dart'; // Admin page
+import 'pages/track_parcel_page.dart'; // Student page
+import 'pages/notification_page.dart'; // Student page
+import 'pages/history_page.dart'; // Student page
+>>>>>>> a184e91dfde0fedc07f72d37cbdb043425f6c02b
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -555,49 +565,6 @@ class AdminDashboard extends StatelessWidget {
         icon: const Icon(Icons.camera_alt),
         backgroundColor: Colors.deepOrange,
         foregroundColor: Colors.white,
-      ),
-    );
-  }
-}
-
-// Placeholder Pages
-
-class HistoryPage extends StatelessWidget {
-  const HistoryPage({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('History'),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.history,
-              size: 64,
-              color: Colors.purple.shade300,
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'History',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Placeholder Page',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey.shade600,
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
