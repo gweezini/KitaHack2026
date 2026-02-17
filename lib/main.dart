@@ -473,7 +473,7 @@ class AdminDashboard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Admin Dashboard [TEST MODE]'),
+        title: const Text('Admin'),
         backgroundColor: Colors.orange.shade700,
         actions: [
           IconButton(
