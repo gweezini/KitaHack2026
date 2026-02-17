@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:kita_hack_2026/pages/admin/verify_collection_page.dart';
 
 class OCRScanPage extends StatefulWidget {
   const OCRScanPage({super.key});
@@ -469,6 +470,18 @@ class _OCRScanPageState extends State<OCRScanPage> {
         title: const Text('Scan & Register Parcel'),
         backgroundColor: Colors.deepOrange,
         foregroundColor: Colors.white,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.qr_code_scanner),
+            tooltip: 'Verify Collection',
+            onPressed: () {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const VerifyCollectionPage()));
+            },
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
