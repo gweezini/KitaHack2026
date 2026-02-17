@@ -31,6 +31,36 @@ class PendingParcelsPage extends StatelessWidget {
     }
   }
 
+  // Calculates overdue charges based on parcel type and arrival date.
+  double _calculateOverdueCharge(String type, Timestamp? arrivalDate) {
+    if (arrivalDate == null) return 0.0;
+
+    final daysUncollected =
+        DateTime.now().difference(arrivalDate.toDate()).inDays;
+    final parcelType = type.toLowerCase();
+    double overdueCharge = 0.0;
+
+    final nonParcelTypes = ['letter', 'card', 'document', 'book'];
+
+    if (nonParcelTypes.contains(parcelType)) {
+      // Overdue for non-parcels after 14 days
+      if (daysUncollected > 14) {
+        overdueCharge = (daysUncollected - 14) * 0.50;
+      }
+    } else {
+      // Overdue for parcels after 3 days
+      if (daysUncollected > 14) {
+        // After 14 days, fee is RM 2.00 + RM 0.50/day
+        overdueCharge = 2.00 + (daysUncollected - 14) * 0.50;
+      } else if (daysUncollected > 7) {
+        overdueCharge = 2.00;
+      } else if (daysUncollected > 3) {
+        overdueCharge = 1.00;
+      }
+    }
+    return overdueCharge;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -43,6 +73,7 @@ class PendingParcelsPage extends StatelessWidget {
         stream: FirebaseFirestore.instance
             .collection('parcels')
             .where('status', isEqualTo: 'Pending Pickup')
+            .orderBy('arrivalDate', descending: true)
             .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -80,12 +111,16 @@ class PendingParcelsPage extends StatelessWidget {
               final studentId = parcel['studentId'] as String? ?? 'N/A';
               final phoneNumber = parcel['phoneNumber'] as String? ?? 'N/A';
               final arrivalDate = parcel['arrivalDate'] as Timestamp?;
+              final parcelType = parcel['type'] as String? ?? 'Parcel';
 
               String arrivalDateFormatted = 'Unknown time';
               if (arrivalDate != null) {
                 arrivalDateFormatted =
                     DateFormat('d MMM yyyy, h:mm a').format(arrivalDate.toDate());
               }
+
+              // Calculate overdue charge
+              final charge = _calculateOverdueCharge(parcelType, arrivalDate);
 
               return Card(
                 margin:
@@ -103,10 +138,24 @@ class PendingParcelsPage extends StatelessWidget {
                     recipientName,
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
-                  subtitle: Text(
-                    'ID: $studentId\nPhone: $phoneNumber\nTracking: $trackingNumber\nArrived: $arrivalDateFormatted',
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('ID: $studentId'),
+                      Text('Phone: $phoneNumber'),
+                      Text('Tracking: $trackingNumber'),
+                      Text('Arrived: $arrivalDateFormatted'),
+                      if (charge > 0)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4.0),
+                          child: Text(
+                            'Charge: RM ${charge.toStringAsFixed(2)}',
+                            style: const TextStyle(
+                                color: Colors.red, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                    ],
                   ),
-                  isThreeLine: true,
                   trailing: ElevatedButton(
                     onPressed: () => _markAsCollected(context, parcelDoc.id),
                     style: ElevatedButton.styleFrom(

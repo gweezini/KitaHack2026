@@ -28,16 +28,20 @@ class _OverdueChargesPageState extends State<OverdueChargesPage> {
     if (nonParcelTypes.contains(parcelType)) {
       // Overdue after 2 weeks (14 days)
       if (daysUncollected > 14) {
-        overdueCharge = (daysUncollected - 14) * 0.50;
+        overdueCharge = 0.5 + (daysUncollected - 14) * 0.50;
+      } else if(daysUncollected > 0 && daysUncollected <= 14 && daysUncollected == 0) {
+        overdueCharge = 0.5;
       }
     } else {
       // Assumes 'Parcel', overdue after 3 days
       if (daysUncollected > 14) {
         // Penalty at day 14 is RM 2.00, then add daily charge
-        overdueCharge = 2.00 + (daysUncollected - 14) * 0.50;
+        overdueCharge = 3.00 + (daysUncollected - 14) * 0.50;
       } else if (daysUncollected > 7) {
-        overdueCharge = 2.00;
+        overdueCharge = 3.00;
       } else if (daysUncollected > 3) {
+        overdueCharge = 2.00;
+      } else {
         overdueCharge = 1.00;
       }
     }
