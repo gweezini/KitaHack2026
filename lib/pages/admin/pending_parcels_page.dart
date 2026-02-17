@@ -45,16 +45,20 @@ class PendingParcelsPage extends StatelessWidget {
     if (nonParcelTypes.contains(parcelType)) {
       // Overdue for non-parcels after 14 days
       if (daysUncollected > 14) {
-        overdueCharge = (daysUncollected - 14) * 0.50;
+        overdueCharge = 0.5 + (daysUncollected - 14) * 0.50;
+      } else if (daysUncollected >= 0 && daysUncollected <= 14) {
+        overdueCharge = 0.5;
       }
     } else {
       // Overdue for parcels after 3 days
       if (daysUncollected > 14) {
         // After 14 days, fee is RM 2.00 + RM 0.50/day
-        overdueCharge = 2.00 + (daysUncollected - 14) * 0.50;
+        overdueCharge = 3.00 + (daysUncollected - 14) * 0.50;
       } else if (daysUncollected > 7) {
-        overdueCharge = 2.00;
+        overdueCharge = 3.00;
       } else if (daysUncollected > 3) {
+        overdueCharge = 2.00;
+      } else {
         overdueCharge = 1.00;
       }
     }
@@ -73,7 +77,6 @@ class PendingParcelsPage extends StatelessWidget {
         stream: FirebaseFirestore.instance
             .collection('parcels')
             .where('status', isEqualTo: 'Pending Pickup')
-            .orderBy('arrivalDate', descending: true)
             .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
