@@ -1,9 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart'; // For kIsWeb
 import 'package:firebase_core/firebase_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart'; // Added
 import 'package:provider/provider.dart';
 import 'providers/auth_provider.dart';
 import 'pages/login_page.dart';
+<<<<<<< HEAD
+import 'pages/admin/ocr_scan_page.dart';
+import 'pages/admin/users_list_page.dart';
+import 'pages/overdue_charges_page.dart';
+import 'pages/admin/pending_parcels_page.dart';
+import 'pages/track_parcel_page.dart';
+import 'pages/track_parcel_page.dart';
+import 'pages/notification_page.dart';
+import 'services/notification_service.dart';
+=======
 import 'pages/admin/ocr_scan_page.dart'; // Admin page
 import 'pages/admin/users_list_page.dart'; // Admin page
 import 'pages/overdue_charges_page.dart'; // Student page
@@ -11,6 +22,7 @@ import 'pages/admin/pending_parcels_page.dart'; // Admin page
 import 'pages/track_parcel_page.dart'; // Student page
 import 'pages/notification_page.dart'; // Student page
 import 'pages/history_page.dart'; // Student page
+>>>>>>> a184e91dfde0fedc07f72d37cbdb043425f6c02b
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -84,10 +96,197 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context);
+    final studentId = authProvider.studentId;
+
     return Scaffold(
+      backgroundColor: Colors.orange.shade50, // Light Orange Background for Home Page
       appBar: AppBar(
         title: const Text('Dashboard'),
         actions: [
+          // Notification Map
+          StreamBuilder<QuerySnapshot>(
+            stream: studentId != null
+                ? FirebaseFirestore.instance
+                    .collection('notifications')
+                    .where('studentId', isEqualTo: studentId)
+                    // Removed orderBy from query to avoid index requirement
+                    .snapshots()
+                : const Stream.empty(),
+            builder: (context, snapshot) {
+              int unreadCount = 0;
+              List<DocumentSnapshot> notifications = [];
+
+              if (snapshot.hasData) {
+                // Client-side sorting to show latest first without Firestore index
+                notifications = snapshot.data!.docs;
+                notifications.sort((a, b) {
+                   final tA = (a.data() as Map)['timestamp'] as Timestamp?;
+                   final tB = (b.data() as Map)['timestamp'] as Timestamp?;
+                   if (tA == null || tB == null) return 0;
+                   return tB.compareTo(tA);
+                });
+                
+                // Count unread (across all fetched docs)
+                unreadCount = notifications.where((doc) => (doc.data() as Map)['isRead'] == false).length;
+
+                // Take top 5 for the dropdown
+                if (notifications.length > 5) {
+                   notifications = notifications.sublist(0, 5);
+                }
+              }
+
+              return PopupMenuButton<String>(
+                offset: const Offset(0, 50),
+                color: Colors.white, // White background for the menu
+                constraints: const BoxConstraints.tightFor(width: 350), // Wider menu
+                icon: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    const Icon(Icons.notifications, size: 28),
+                    if (unreadCount > 0)
+                      Positioned(
+                        right: -2,
+                        top: -2,
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: Colors.orange.shade200,
+                            shape: BoxShape.circle,
+                          ),
+                          constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                          child: Text(
+                            '$unreadCount',
+                            style: const TextStyle(color: Colors.deepOrange, fontSize: 10, fontWeight: FontWeight.bold),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                onSelected: (value) {
+                  if (value == 'view_all') {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => NotificationPage()),
+                    );
+                  }
+                },
+                itemBuilder: (BuildContext context) {
+                  List<PopupMenuEntry<String>> items = [];
+
+                  // Header
+                  items.add(
+                    const PopupMenuItem<String>(
+                      enabled: false,
+                      child: Text('Recent Notifications', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black, fontSize: 16)),
+                    ),
+                  );
+
+                  // Notification Items
+                  if (notifications.isEmpty) {
+                    items.add(
+                      const PopupMenuItem<String>(
+                        enabled: false,
+                        child: Text('No notifications'),
+                      ),
+                    );
+                  } else {
+                    for (var doc in notifications) {
+                      final data = doc.data() as Map<String, dynamic>;
+                      final bool isRead = data['isRead'] ?? true;
+                      
+                      items.add(
+                        PopupMenuItem<String>(
+                          value: doc.id,
+                          onTap: () {
+                             // Mark as read on tap
+                             if (!isRead) {
+                               doc.reference.update({'isRead': true});
+                             }
+                          },
+                          child: Container(
+                            width: double.infinity,
+                            margin: const EdgeInsets.symmetric(vertical: 4), // Add spacing between items
+                            padding: const EdgeInsets.all(12), // More padding inside
+                            decoration: BoxDecoration(
+                              color: Colors.white, // All notifications are white now
+                              borderRadius: BorderRadius.circular(12),
+                              // Distinct styling for unread: Orange border + Shadow
+                              border: isRead 
+                                  ? Border.all(color: Colors.grey.shade200) 
+                                  : Border.all(color: Colors.deepOrange.shade200, width: 2), 
+                              boxShadow: [
+                                if (!isRead)
+                                  BoxShadow(
+                                    color: Colors.deepOrange.withOpacity(0.1),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 4),
+                                  )
+                              ],
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    if (!isRead) 
+                                      Container(
+                                        margin: const EdgeInsets.only(right: 8),
+                                        width: 8,
+                                        height: 8,
+                                        decoration: const BoxDecoration(
+                                          color: Colors.deepOrange,
+                                          shape: BoxShape.circle,
+                                        ),
+                                      ),
+                                    Expanded(
+                                      child: Text(
+                                        data['title'] ?? 'Notification',
+                                        style: TextStyle(
+                                          fontWeight: isRead ? FontWeight.normal : FontWeight.bold,
+                                          color: Colors.black87,
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  data['message'] ?? '',
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    }
+                  }
+
+                  // Footer: View All
+                  items.add(const PopupMenuDivider());
+                  items.add(
+                    const PopupMenuItem<String>(
+                      value: 'view_all',
+                      child: Center(
+                        child: Text(
+                          'View All Notifications',
+                          style: TextStyle(color: Colors.deepOrange, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ),
+                  );
+
+                  return items;
+                },
+              );
+            },
+          ),
+          
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () => context.read<AuthProvider>().logout(),
@@ -99,7 +298,7 @@ class HomePage extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text(
+             const Text(
               'Welcome to KitaHack University Parcels!',
               style: TextStyle(
                 fontSize: 20,
@@ -108,20 +307,9 @@ class HomePage extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 48),
-            _StudentButton(
-              title: 'Notifications',
-              icon: Icons.notifications,
-              color: Colors.redAccent, // Distinct color
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => NotificationPage(),
-                  ),
-                );
-              },
-            ),
-            const SizedBox(height: 16),
+            
+            // Replaced Notifications Button with StreamBuilder above
+            
             _StudentButton(
               title: 'Track Parcel',
               icon: Icons.local_shipping,
@@ -144,7 +332,7 @@ class HomePage extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const OverdueChargesPage(), // Now links to the real page
+                    builder: (context) => const OverdueChargesPage(), 
                   ),
                 );
               },
@@ -175,16 +363,58 @@ class _StudentButton extends StatelessWidget {
   final IconData icon;
   final Color color;
   final VoidCallback onPressed;
+  final int badgeCount;
 
   const _StudentButton({
     required this.title,
     required this.icon,
     required this.color,
     required this.onPressed,
+    this.badgeCount = 0,
   });
 
   @override
   Widget build(BuildContext context) {
+    // Only wrap in Stack if there is a badge to show
+    Widget iconWidget = Icon(
+      icon,
+      size: 32,
+      color: Colors.white,
+    );
+
+    if (badgeCount > 0) {
+      iconWidget = Stack(
+        clipBehavior: Clip.none,
+        children: [
+          iconWidget,
+          Positioned(
+            right: -4, // Adjust position to be partially outside checking clip
+            top: -4,
+            child: Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: Colors.orange.shade200, // Light Orange Badge
+                shape: BoxShape.circle,
+              ),
+              constraints: const BoxConstraints(
+                minWidth: 18,
+                minHeight: 18,
+              ),
+              child: Text(
+                '$badgeCount',
+                style: TextStyle(
+                  color: color,
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
@@ -207,11 +437,7 @@ class _StudentButton extends StatelessWidget {
             padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
             child: Row(
               children: [
-                Icon(
-                  icon,
-                  size: 32,
-                  color: Colors.white,
-                ),
+                iconWidget,
                 const SizedBox(width: 16),
                 Text(
                   title,
@@ -285,6 +511,41 @@ class AdminDashboard extends StatelessWidget {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
                   backgroundColor: Colors.blue.shade700,
+                  foregroundColor: Colors.white,
+                  textStyle: const TextStyle(fontSize: 16),
+                ),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton.icon(
+                onPressed: () async {
+                  final service = NotificationService();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Checking for overdue parcels...')));
+                  
+                  try {
+                    int count = await service.checkAndSendOverdueReminders(context);
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Sent $count reminders.'),
+                          backgroundColor: count > 0 ? Colors.green : Colors.blue,
+                        ),
+                      );
+                    }
+                  } catch (e) {
+                     if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+                      );
+                    }
+                  }
+                },
+                icon: const Icon(Icons.notifications_active),
+                label: const Text('Send Due Date Reminders'),
+                style: ElevatedButton.styleFrom(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                  backgroundColor: Colors.redAccent.shade700,
                   foregroundColor: Colors.white,
                   textStyle: const TextStyle(fontSize: 16),
                 ),

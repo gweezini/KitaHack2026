@@ -10,20 +10,34 @@ class AuthProvider extends ChangeNotifier {
   bool _isAuthenticated = false;
   bool _isAdmin = false;
 
+  String? _studentId;
+
 // Getters
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
   bool get isAuthenticated => _isAuthenticated;
   bool get isAdmin => _isAdmin;
+  String? get studentId => _studentId;
 
   AuthProvider() {
-    _auth.authStateChanges().listen((User? user) {
+    _auth.authStateChanges().listen((User? user) async {
       if (user != null) {
         _isAuthenticated = true;
         _isAdmin = user.email?.toLowerCase().contains('admin') ?? false;
+        
+        // Fetch studentId from Firestore
+        try {
+          final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+          if (doc.exists) {
+            _studentId = doc.data()?['studentId'];
+          }
+        } catch (e) {
+          print("Error fetching user data in AuthProvider: $e");
+        }
       } else {
         _isAuthenticated = false;
         _isAdmin = false;
+        _studentId = null;
       }
       notifyListeners();
     });
