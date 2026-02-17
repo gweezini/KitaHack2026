@@ -82,9 +82,11 @@ class _OCRScanPageState extends State<OCRScanPage> {
       String? bestPhoneCandidate;
       List<String> potentialNames = [];
 
-      final trackingPriorityRegex = RegExp(r'^(SPX|JNT|LEX|NJV|DHL|PL|ER|SHP|NVMY)[A-Z0-9]{5,25}$|^(MY|TH)[A-Z0-9]{10,25}$');
-      final trackingNumericRegex = RegExp(r'^\d{12,15}$');
-      final trackingGenericRegex = RegExp(r'^(?=.*[A-Z])[A-Z0-9]{10,20}$');
+      // Regex for Tracking Number
+      // We look for patterns anywhere in the string, but STRICTLY matching the format
+      final trackingPriorityRegex = RegExp(r'\b(SPX|JNT|LEX|NJV|DHL|PL|ER|SHP|NVMY)[A-Z0-9]{5,25}\b|\b(MY|TH)[A-Z0-9]{10,25}\b');
+      final trackingNumericRegex = RegExp(r'\b\d{12,15}\b');
+      final trackingGenericRegex = RegExp(r'(?<![A-Z0-9])[A-Z0-9]{10,20}(?![A-Z0-9])');
       
       final phoneRegex = RegExp(r'(?:60|0)1[0-9*]{8,10}');
 
@@ -92,18 +94,24 @@ class _OCRScanPageState extends State<OCRScanPage> {
         'ORDER', 'DETAILS', 'DETAIL', 'PENGIRIM', 'PENERIMA', 'ADDRESS', 
         'POSTCODE', 'TEL', 'PARCEL', 'WEIGHT', 'COD', 'MYR', 'RM', 
         'SHOPEE', 'LAZADA', 'EXPRESS', 'LOGISTICS', 'SENDER', 'RECIPIENT',
-        'DATE', 'ID', 'SHIP', 'BY', 'STANDARD', 'DELIVERY', 'SELF', 'COLLECTION'
+        'DATE', 'ID', 'SHIP', 'BY', 'STANDARD', 'DELIVERY', 'SELF', 'COLLECTION',
+        'KG', 'G', 'LBS', 'PCS', 'CM', 'MM', 'NO', 'NUM', 'NUMBER', 'BILL', 'AWB',
+        // Address Blacklist
+        'JALAN', 'LORONG', 'BATU', 'TAMAN', 'BUKIT', 'KAMPUNG', 'KG', 
+        'SIMPANG', 'PLOT', 'LOT', 'BLOCK', 'BLOK', 'LEVEL', 'FLOOR', 'UNIT',
+        'PORT', 'DICKSON', 'NEGERI', 'SEMBILAN', 'MELAKA', 'JOHOR', 'PAHANG',
+        'SELANGOR', 'KUALA', 'LUMPUR', 'PUTRAJAYA', 'PERAK', 'KEDAH', 'PERLIS',
+        'KELANTAN', 'TERENGGANU', 'SABAH', 'SARAWAK', 'LABUAN', 'DISTRICT',
+        'JAYA', 'UTAMA', 'BARU', 'LAMA', 'SEKSYEN', 'SEKOLAH', 'OFFICE', 'RUMAH'
       ];
 
       final lines = extracted.split('\n');
       for (var line in lines) {
-        String cleanLine = line.replaceAll(RegExp(r'[\s-]'), '').toUpperCase();
-        
-        final phoneLine = line
-            .toUpperCase()
-            .replaceAll('O', '0')
-            .replaceAll(RegExp(r'[^0-9*]'), '');
+        String upperLine = line.toUpperCase().trim();
+        String cleanLine = upperLine.replaceAll(RegExp(r'[\s-]'), '');
 
+        // 1. Identify Phone and Tracking (Keep existing logic)
+        final phoneLine = upperLine.replaceAll('O', '0').replaceAll(RegExp(r'[^0-9*]'), '');
         final phoneMatch = phoneRegex.firstMatch(phoneLine);
         
         if (phoneMatch != null) {
@@ -111,91 +119,147 @@ class _OCRScanPageState extends State<OCRScanPage> {
            bestPhoneCandidate = _normalizePhone(rawPhone);
         }
 
-        if (trackingPriorityRegex.hasMatch(cleanLine)) {
-            bestTrackingCandidate = cleanLine;
-        } else if (trackingNumericRegex.hasMatch(cleanLine) && bestTrackingCandidate == null) {
-            bestTrackingCandidate = cleanLine;
-        } else if (trackingGenericRegex.hasMatch(cleanLine) && bestTrackingCandidate == null) {
+        final priorityMatch = trackingPriorityRegex.firstMatch(cleanLine);
+        final numericMatch = trackingNumericRegex.firstMatch(cleanLine);
+        final genericMatch = trackingGenericRegex.firstMatch(cleanLine);
+
+        if (priorityMatch != null) {
+            bestTrackingCandidate = priorityMatch.group(0);
+        } else if (numericMatch != null && bestTrackingCandidate == null) {
+            bestTrackingCandidate = numericMatch.group(0);
+        } else if (genericMatch != null && bestTrackingCandidate == null) {
               // avoid common non-tracking lines
-              if (!line.toUpperCase().contains('ORDER') && !line.toUpperCase().contains('ID')) {
-                bestTrackingCandidate = cleanLine;
+              if (!upperLine.contains('ORDER') && !upperLine.contains('ID')) {
+                bestTrackingCandidate = genericMatch.group(0);
               }
         }
 
-        String potentialName = _normalizeNameForSearch(line);
-        if (potentialName.startsWith('NAME')) potentialName = potentialName.substring(4).trim();
-        if (potentialName.startsWith('PENERIMA')) potentialName = potentialName.substring(8).trim();
-        if (potentialName.startsWith('RECIPIENT')) potentialName = potentialName.substring(9).trim();
+        // 2. Enhanced Name Extraction Logic for Shopee labels
+        // Even if the line has numbers, try to extract name
+        String nameOnly = upperLine;
         
-        bool isBlacklisted = false;
-        for (var weirdWord in nameBlacklist) {
-          if (potentialName.contains(weirdWord)) { 
-            isBlacklisted = true;
-            break;
-          }
+        // Cut off address keywords
+        int addressIndex = upperLine.indexOf(RegExp(r'JALAN|LORONG|TAMAN|BUKIT|KG|LOT|NO\.|BLOCK|BLOK|KAMPUNG|BATU|LEVEL|FLOOR|UNIT'));
+        if (addressIndex != -1) {
+          nameOnly = upperLine.substring(0, addressIndex).trim();
         }
 
-        if (phoneMatch == null && 
-            !trackingGenericRegex.hasMatch(cleanLine) && 
-            !isBlacklisted &&
-            potentialName.split(' ').length >= 2 && 
-            potentialName.length > 3) {
-             potentialNames.add(potentialName);
+        // Clean leading keywords (Handles common OCR typos like "JAME" for "NAME")
+        String finalPotentialName = _normalizeNameForSearch(nameOnly)
+            .replaceFirst(RegExp(r'^(NAME|RECIPIENT|PENERIMA|TO|SHIP TO|BUYER|JAME|TECIPIENT|ENDER)\s+'), '')
+            .trim();
+
+        // 3. Core Change: Allow lines with numbers if they look like names
+        // Do not exclude based on isTracking or digits presence
+        if (finalPotentialName.length > 3 && finalPotentialName.split(' ').length >= 2) {
+           // Exclude logistics company names
+           if (!finalPotentialName.contains('SHOPEE') && !finalPotentialName.contains('LAZADA')) {
+              potentialNames.add(finalPotentialName);
+           }
         }
       }
 
       setState(() {
-        if (bestTrackingCandidate != null) _trackingController.text = bestTrackingCandidate!;
-        if (bestPhoneCandidate != null) _phoneController.text = bestPhoneCandidate!;
+        if (bestTrackingCandidate != null) _trackingController.text = bestTrackingCandidate;
+        if (bestPhoneCandidate != null) _phoneController.text = bestPhoneCandidate;
       });
 
-      if (bestPhoneCandidate != null) {
-        await _handlePhoneLookup(bestPhoneCandidate!);
-      } else if (potentialNames.isNotEmpty) {
-        await _handleNameLookup(potentialNames);
-      } else {
-        _showSnackBar('No phone or name detected. Manual Entry.');
-      }
+      bool foundUser = false;
 
+      if (bestPhoneCandidate != null) {
+        _showSnackBar('Searching by phone...');
+        foundUser = await _handlePhoneLookup(bestPhoneCandidate!);
+      } 
+      
+      if (!foundUser && potentialNames.isNotEmpty) {
+        _showSnackBar('No phone? Trying to match names...');
+        await _handleNameLookup(potentialNames);
+      } else if (!foundUser) {
+        _showSnackBar('No phone or name detected. Please enter manually.');
+      }
     } catch (e) {
       _showSnackBar('OCR Error: $e');
     }
   }
 
   Future<void> _handleNameLookup(List<String> candidates) async {
-    _showSnackBar('Trying to match names...');
-    
-    int checks = 0;
-    for (String name in candidates) {
-      if (checks > 4) break; 
-      
-      try {
-        final snapshot = await FirebaseFirestore.instance
-            .collection('users')
-            .where('searchName', isEqualTo: name)
-            .get();
+    _showSnackBar('Searching database for names...');
+    List<String> logs = []; // Log for debugging
+    logs.add("Candidates: ${candidates.join(', ')}");
 
-        if (snapshot.docs.isNotEmpty) {
-           final userData = snapshot.docs.first.data();
-           _fillUserData(userData);
-           _showSnackBar('Matched Name: $name');
-           return; 
+    try {
+      final snapshot = await FirebaseFirestore.instance.collection('users').get();
+      logs.add("Total Users in DB: ${snapshot.docs.length}");
+      
+      for (var doc in snapshot.docs) {
+        final data = doc.data();
+        
+        // Critical Fix: Fallback to fullName if searchName is missing
+        String rawDbName = data['searchName'] ?? data['fullName'] ?? ""; 
+        
+        // Clean DB name: Remove spaces/symbols, Uppercase (e.g. "Gwee Zi Ni" -> "GWEEZINI")
+        String dbNameClean = rawDbName.toString().toUpperCase().replaceAll(RegExp(r'[^A-Z]'), '');
+        
+        if (dbNameClean.isEmpty) continue;
+
+        for (String scannedLine in candidates) {
+          String scannedClean = scannedLine.toUpperCase().replaceAll(RegExp(r'[^A-Z]'), '');
+          
+          // Log only if it's somewhat similar to avoid spam, or just log first few
+          if (scannedClean.isNotEmpty && dbNameClean.contains(scannedClean)) {
+             logs.add("Partial Match: $scannedClean in $dbNameClean");
+          }
+
+          if (scannedClean.contains(dbNameClean) || dbNameClean.contains(scannedClean)) {
+            _fillUserData(data);
+            _showSnackBar('Success! Matched: ${data['fullName']}');
+            return; 
+          }
+          
+          if (scannedClean.length > 5 && dbNameClean.length > 5) {
+             if (scannedClean.substring(0, scannedClean.length - 1) == dbNameClean ||
+                 dbNameClean.substring(0, dbNameClean.length - 1) == scannedClean) {
+                _fillUserData(data);
+                _showSnackBar('Fuzzy Match Success!');
+                return;
+             }
+          }
         }
-      } catch (e) {
-        print('Name lookup error: $e');
       }
-      checks++;
+    } catch (e) {
+      logs.add("Error: $e");
     }
-    
-    _showSnackBar('No matching names found. Manual Entry.');
+
+    // If we reach here, no match was found. Show Debug Dialog.
+    _showDebugDialog(logs);
   }
 
-  Future<void> _handlePhoneLookup(String rawPhone) async {
+  void _showDebugDialog(List<String> logs) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('OCR Debug Report'),
+          content: SingleChildScrollView(
+            child: Text(logs.join('\n')),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<bool> _handlePhoneLookup(String rawPhone) async {
     final String phone = _normalizePhone(rawPhone); // normalize first (handles 60)
     final bool isMasked = phone.contains('*');
 
     if (!isMasked) {
-      await _lookupByExactPhone(phone);
+      return await _lookupByExactPhone(phone);
     } else {
       // Automatic prefix extraction (dynamic length)
       // Matches leading digits until it hits a non-digit (like *)
@@ -207,14 +271,15 @@ class _OCRScanPageState extends State<OCRScanPage> {
       final suffix = suffixMatch?.group(1) ?? '';
 
       if (prefix.length >= 3 && suffix.isNotEmpty) {
-        await _lookupByPartialPhone(prefix, suffix);
+        return await _lookupByPartialPhone(prefix, suffix);
       } else {
         _showSnackBar('Masked phone not enough digits to match.');
+        return false;
       }
     }
   }
 
-  Future<void> _lookupByExactPhone(String phone) async {
+  Future<bool> _lookupByExactPhone(String phone) async {
      try {
       final snapshot = await FirebaseFirestore.instance
           .collection('users')
@@ -232,18 +297,22 @@ class _OCRScanPageState extends State<OCRScanPage> {
            final userData = matches.first;
            _fillUserData(userData);
            _showSnackBar('Exact Match Found!');
+           return true;
         } else {
            _showSelectionDialog(matches);
+           return true; // Consider selection dialog as "found"
         }
       } else {
-        _showSnackBar('Phone found, but no user registered.');
+        _showSnackBar('Phone found, but no user registered. Trying Name...');
+        return false;
       }
     } catch (e) {
       print('Exact lookup error: $e');
+      return false;
     }
   }
 
-  Future<void> _lookupByPartialPhone(String prefix, String suffix) async {
+  Future<bool> _lookupByPartialPhone(String prefix, String suffix) async {
     try {
       final start = prefix;
       final end = '$prefix\uf8ff';
@@ -269,17 +338,24 @@ class _OCRScanPageState extends State<OCRScanPage> {
         // === LEVEL 2: Single Match ===
         _fillUserData(matches.first);
         _showSnackBar('Auto-matched masked phone!');
+        return true;
       } else if (matches.length > 1) {
         // === LEVEL 3: Multiple Matches ===
         _showSelectionDialog(matches);
+        return true;
       } else {
-         _showSnackBar('No matching users found. Please enter manually.');
+         return false; // Let it fallback to name
       }
 
     } catch (e) {
       print('Partial lookup error: $e');
+      return false;
     }
   }
+
+
+
+
 
   // Helper to fill data
   void _fillUserData(Map<String, dynamic> data) {
@@ -441,7 +517,7 @@ class _OCRScanPageState extends State<OCRScanPage> {
             ),
             const SizedBox(height: 15),
             DropdownButtonFormField<String>(
-              value: _parcelType,
+              initialValue: _parcelType,
               items: _parcelTypes.map((t) => DropdownMenuItem(value: t, child: Text(t))).toList(),
               onChanged: (val) => setState(() => _parcelType = val!),
               decoration: const InputDecoration(labelText: 'Type', border: OutlineInputBorder()),
