@@ -2,7 +2,7 @@
 # Group Name: Chill Guys  
 
 ## Problem Statement  
-![Problems](images/Problems.png) 
+![Problems](images/Problems.png)  
 Although online shopping has become common among university students, campus parcel management still relies on manual methods such as WhatsApp messages to notify students and some students have to check the e-commerce app for updates. There is no centralized and automatic notification system which may cause students to miss updates and forget their purchases or collect their parcels late. This sometimes results in penalty charges. Overall, this reflects the lack of proper communication between courier delivery updates and campus parcel management.  
 
 ## Getting Started  
