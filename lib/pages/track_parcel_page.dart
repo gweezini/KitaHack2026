@@ -57,6 +57,36 @@ class _TrackParcelPageState extends State<TrackParcelPage> {
     }
   }
 
+  double _calculateOverdueCharge(String type, Timestamp? arrivalDate) {
+    if (arrivalDate == null) return 0.0;
+
+    final daysUncollected =
+        DateTime.now().difference(arrivalDate.toDate()).inDays;
+    final parcelType = type.toLowerCase();
+    double overdueCharge = 0.0;
+
+    final nonParcelTypes = ['letter', 'document'];
+
+    if (nonParcelTypes.contains(parcelType)) {
+      if (daysUncollected > 14) {
+        overdueCharge = 0.5 + (daysUncollected - 14) * 0.50;
+      } else if (daysUncollected >= 0 && daysUncollected <= 14) {
+        overdueCharge = 0.5;
+      }
+    } else {
+      if (daysUncollected > 14) {
+        overdueCharge = 3.00 + (daysUncollected - 14) * 0.50;
+      } else if (daysUncollected > 7) {
+        overdueCharge = 3.00;
+      } else if (daysUncollected > 3) {
+        overdueCharge = 2.00;
+      } else {
+        overdueCharge = 1.00;
+      }
+    }
+    return overdueCharge;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -148,11 +178,107 @@ class _TrackParcelPageState extends State<TrackParcelPage> {
                           }
 
                           final parcels = snapshot.data!.docs;
+                          
+                          // Calculate Total Count and Total Charges
+                          int totalParcels = 0;
+                          double totalCharges = 0.0;
+                          final List<QueryDocumentSnapshot> filteredParcels = [];
 
-                          return ListView.builder(
-                            itemCount: parcels.length,
-                            itemBuilder: (context, index) {
-                              final parcelDoc = parcels[index];
+                          for (var doc in parcels) {
+                            final parcel = doc.data() as Map<String, dynamic>;
+                            final trackingNumber = parcel['trackingNumber'] as String? ?? '';
+                            
+                            if (_searchQuery.isNotEmpty && !trackingNumber.contains(_searchQuery)) {
+                              continue;
+                            }
+                            
+                            filteredParcels.add(doc);
+                            totalParcels++;
+                            totalCharges += _calculateOverdueCharge(
+                                parcel['type'] as String? ?? 'Parcel', 
+                                parcel['arrivalDate'] as Timestamp?);
+                          }
+
+                          return Column(
+                            children: [
+                              // === SUMMARY CARD ===
+                              Container(
+                                margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                                padding: const EdgeInsets.all(16.0),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(12),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.grey.withOpacity(0.2),
+                                      spreadRadius: 2,
+                                      blurRadius: 5,
+                                      offset: const Offset(0, 3),
+                                    ),
+                                  ],
+                                  border: Border.all(color: Colors.blue.shade100, width: 2),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                  children: [
+                                    Expanded(
+                                      child: Column(
+                                        children: [
+                                          const Text('Pending Parcels',
+                                              textAlign: TextAlign.center,
+                                              style: TextStyle(
+                                                  color: Colors.grey,
+                                                  fontSize: 13)),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            '$totalParcels',
+                                            style: const TextStyle(
+                                                fontSize: 24,
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.blue),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    Container(
+                                        height: 40,
+                                        width: 1,
+                                        color: Colors.grey.shade300),
+                                    Expanded(
+                                      child: Column(
+                                        children: [
+                                          const Text('Total Amount Due',
+                                              textAlign: TextAlign.center,
+                                              style: TextStyle(
+                                                  color: Colors.grey,
+                                                  fontSize: 13)),
+                                          const SizedBox(height: 4),
+                                          FittedBox(
+                                            fit: BoxFit.scaleDown,
+                                            child: Text(
+                                              'RM ${totalCharges.toStringAsFixed(2)}',
+                                              style: TextStyle(
+                                                  fontSize: 24,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: totalCharges > 0
+                                                      ? Colors.red.shade700
+                                                      : Colors.green),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              // === PARCEL LIST ===
+                              Expanded(
+                                child: filteredParcels.isEmpty
+                                  ? const Center(child: Text('No parcels match your search.'))
+                                  : ListView.builder(
+                                  itemCount: filteredParcels.length,
+                                  itemBuilder: (context, index) {
+                                    final parcelDoc = filteredParcels[index];
                               final parcel =
                                   parcelDoc.data() as Map<String, dynamic>;
                               final trackingNumber =
@@ -174,6 +300,8 @@ class _TrackParcelPageState extends State<TrackParcelPage> {
                                         .format(arrivalDate.toDate());
                               }
 
+                              final charge = _calculateOverdueCharge(type, arrivalDate);
+
                               return Card(
                                 margin: const EdgeInsets.symmetric(
                                     horizontal: 16, vertical: 8),
@@ -184,8 +312,21 @@ class _TrackParcelPageState extends State<TrackParcelPage> {
                                         color: Colors.blue),
                                   ),
                                   title: Text(trackingNumber),
-                                  subtitle: Text(
-                                      'Arrived: $arrivalDateFormatted\nType: $type'),
+                                  subtitle: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text('Type: $type'),
+                                      Text('Arrived: $arrivalDateFormatted'),
+                                      if (charge > 0)
+                                        Padding(
+                                          padding: const EdgeInsets.only(top: 4.0),
+                                          child: Text(
+                                            'Fee: RM ${charge.toStringAsFixed(2)}',
+                                            style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+                                          ),
+                                        ),
+                                    ],
+                                  ),
                                   trailing: const Icon(Icons.qr_code_scanner),
                                   onTap: () {
                                     Navigator.push(
@@ -200,13 +341,16 @@ class _TrackParcelPageState extends State<TrackParcelPage> {
                                       ),
                                     );
                                   },
-                                ),
-                              );
-                            },
-                          );
-                        },
-                      ),
-          ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+      ),
         ],
       ),
     );
