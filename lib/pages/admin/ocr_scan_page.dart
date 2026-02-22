@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
+import 'package:kita_hack_2026/services/notification_generator_service.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -489,11 +490,20 @@ class _OCRScanPageState extends State<OCRScanPage> {
 
       // 2. Send Notification (if studentId exists)
       if (_idController.text.isNotEmpty) {
+        // Generate a personalized notification message using our new service
+        final notificationService = NotificationGeneratorService();
+        final String notificationMessage = await notificationService.generatePersonalizedMessage(
+          studentName: _nameController.text.trim(),
+          parcelType: _parcelType,
+          trackingNumber: _trackingController.text.trim(),
+          storageLocation: _storageLocationController.text.trim(),
+        );
+
          try {
            await FirebaseFirestore.instance.collection('notifications').add({
              'studentId': _idController.text.trim(),
              'title': 'Parcel Arrived',
-             'message': 'Your parcel (${_trackingController.text}) is ready for pickup.',
+             'message': notificationMessage,
              'parcelId': parcelRef.id,
              'isRead': false,
              'timestamp': FieldValue.serverTimestamp(),
