@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:image_picker/image_picker.dart';
@@ -12,7 +13,7 @@ class OCRScanPage extends StatefulWidget {
 }
 
 class _OCRScanPageState extends State<OCRScanPage> {
-  File? _image;
+  XFile? _image;
   final _picker = ImagePicker();
   final _textRecognizer = TextRecognizer(script: TextRecognitionScript.latin);
 
@@ -43,7 +44,7 @@ class _OCRScanPageState extends State<OCRScanPage> {
       final pickedFile = await _picker.pickImage(source: source);
       if (pickedFile != null) {
         setState(() {
-          _image = File(pickedFile.path);
+          _image = pickedFile;
           _isProcessing = true;
           _trackingController.clear();
           _nameController.clear();
@@ -76,8 +77,12 @@ class _OCRScanPageState extends State<OCRScanPage> {
 
 
 
-  Future<void> _processImage(File image) async {
-    final inputImage = InputImage.fromFile(image);
+  Future<void> _processImage(XFile image) async {
+    if (kIsWeb) {
+      _showSnackBar('OCR is not supported on Web. Please enter details manually.');
+      return;
+    }
+    final inputImage = InputImage.fromFile(File(image.path));
     try {
       final recognizedText = await _textRecognizer.processImage(inputImage);
       String extracted = recognizedText.text;
@@ -541,7 +546,9 @@ class _OCRScanPageState extends State<OCRScanPage> {
                     )
                   : ClipRRect(
                       borderRadius: BorderRadius.circular(15),
-                      child: Image.file(_image!, fit: BoxFit.cover),
+                      child: kIsWeb
+                          ? Image.network(_image!.path, fit: BoxFit.cover)
+                          : Image.file(File(_image!.path), fit: BoxFit.cover),
                     ),
             ),
             const SizedBox(height: 20),
