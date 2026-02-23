@@ -1,10 +1,16 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:google_generative_ai/google_generative_ai.dart' as ai;
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
+//Use gemini-2.5-flash model to extract information from the image (more accurate)
+//The model will return a valid JSON object with the following fields:
+//If there is problem such as no wifi connection or model is not available or free API limit reached, use the ML KIT+Regex to extract information from the image
 class OCRScanPage extends StatefulWidget {
   const OCRScanPage({super.key});
 
@@ -82,6 +88,86 @@ class _OCRScanPageState extends State<OCRScanPage> {
       _showSnackBar('OCR is not supported on Web. Please enter details manually.');
       return;
     }
+    
+    _showSnackBar('Analyzing image with AI...');
+    
+    // 1. Try Gemini Vision API First
+    try {
+      final apiKey = dotenv.env['GEMINI_API_KEY'];
+      if (apiKey != null && apiKey.isNotEmpty) {
+        final model = ai.GenerativeModel(
+          model: 'gemini-2.5-flash',//use gemini
+          apiKey: apiKey,
+        );
+
+        final imageBytes = await image.readAsBytes();
+        final prompt = ai.TextPart('''
+          You are an expert logistics data extractor. Analyze this shipping label image.
+          Extract the following information and return ONLY a valid JSON object. Do not wrap in markdown tags or add any conversation text.
+          If a field cannot be found, return null for that field.
+
+          {
+            "recipient_name": "Full name of the receiver",
+            "phone_number": "Phone number (remove all dashes, spaces, and country codes like +60, starting with 0)",
+            "tracking_number": "The main alphanumeric tracking number or AWB",
+            "courier_company": "e.g., Shopee Express, J&T, PosLaju, NinjaVan"
+          }
+        ''');
+        
+        final imagePart = ai.DataPart('image/jpeg', imageBytes);
+        final response = await model.generateContent([
+          ai.Content.multi([prompt, imagePart])
+        ]);
+
+        final responseText = response.text;
+        if (responseText != null && responseText.isNotEmpty) {
+            final String cleanJsonString = responseText
+              .replaceAll(RegExp(r'```json\n?'), '')
+              .replaceAll(RegExp(r'```'), '')
+              .trim();
+              
+            final Map<String, dynamic> data = jsonDecode(cleanJsonString);
+
+            final tracking = data['tracking_number'] as String?;
+            final phone = data['phone_number'] as String?;
+            final name = data['recipient_name'] as String?;
+            final courier = data['courier_company'] as String?;
+            
+            setState(() {
+              if (tracking != null) _trackingController.text = tracking;
+              if (phone != null) _phoneController.text = _normalizePhone(phone);
+            });
+
+            // Check pre-alert
+            if (tracking != null) {
+               bool preAlertFound = await _checkPreAlert(tracking);
+               if (preAlertFound) return;
+            }
+
+            bool foundUser = false;
+            if (phone != null && phone.isNotEmpty) {
+              _showSnackBar('Searching by phone (Gemini)...');
+              foundUser = await _handlePhoneLookup(_normalizePhone(phone));
+            } 
+            
+            if (!foundUser && name != null && name.isNotEmpty) {
+              _showSnackBar('No phone? Trying to match name (Gemini)...');
+              final cleanName = _normalizeNameForSearch(name);
+              await _handleNameLookup([cleanName]);
+            } else if (!foundUser) {
+              _showSnackBar('Gemini could not find a registered user. Please enter manually.');
+            }
+            
+            return; // Success, exit function
+        }
+      }
+    } catch (e) {
+      print('Gemini API Error: $e');
+      _showGeminiErrorDialog(e.toString());
+      _showSnackBar('Gemini AI failed, falling back to basic OCR...');
+    }
+
+    // 2. Fallback to ML Kit Text Recognition if Gemini fails or no API key
     final inputImage = InputImage.fromFile(File(image.path));
     try {
       final recognizedText = await _textRecognizer.processImage(inputImage);
@@ -91,34 +177,17 @@ class _OCRScanPageState extends State<OCRScanPage> {
       List<String> potentialNames = [];
 
       // Regex for Tracking Number
-      // We look for patterns anywhere in the string, but STRICTLY matching the format
       final trackingPriorityRegex = RegExp(r'\b(SPX|JNT|LEX|NJV|DHL|PL|ER|SHP|NVMY)[A-Z0-9]{5,25}\b|\b(MY|TH)[A-Z0-9]{10,25}\b');
       final trackingNumericRegex = RegExp(r'\b\d{12,15}\b');
       final trackingGenericRegex = RegExp(r'(?<![A-Z0-9])[A-Z0-9]{10,20}(?![A-Z0-9])');
       
       final phoneRegex = RegExp(r'(?:60|0)1[0-9*]{8,10}');
 
-      final nameBlacklist = [
-        'ORDER', 'DETAILS', 'DETAIL', 'PENGIRIM', 'PENERIMA', 'ADDRESS', 
-        'POSTCODE', 'TEL', 'PARCEL', 'WEIGHT', 'COD', 'MYR', 'RM', 
-        'SHOPEE', 'LAZADA', 'EXPRESS', 'LOGISTICS', 'SENDER', 'RECIPIENT',
-        'DATE', 'ID', 'SHIP', 'BY', 'STANDARD', 'DELIVERY', 'SELF', 'COLLECTION',
-        'KG', 'G', 'LBS', 'PCS', 'CM', 'MM', 'NO', 'NUM', 'NUMBER', 'BILL', 'AWB',
-        // Address Blacklist
-        'JALAN', 'LORONG', 'BATU', 'TAMAN', 'BUKIT', 'KAMPUNG', 'KG', 
-        'SIMPANG', 'PLOT', 'LOT', 'BLOCK', 'BLOK', 'LEVEL', 'FLOOR', 'UNIT',
-        'PORT', 'DICKSON', 'NEGERI', 'SEMBILAN', 'MELAKA', 'JOHOR', 'PAHANG',
-        'SELANGOR', 'KUALA', 'LUMPUR', 'PUTRAJAYA', 'PERAK', 'KEDAH', 'PERLIS',
-        'KELANTAN', 'TERENGGANU', 'SABAH', 'SARAWAK', 'LABUAN', 'DISTRICT',
-        'JAYA', 'UTAMA', 'BARU', 'LAMA', 'SEKSYEN', 'SEKOLAH', 'OFFICE', 'RUMAH'
-      ];
-
       final lines = extracted.split('\n');
       for (var line in lines) {
         String upperLine = line.toUpperCase().trim();
         String cleanLine = upperLine.replaceAll(RegExp(r'[\s-]'), '');
 
-        // 1. Identify Phone and Tracking (Keep existing logic)
         final phoneLine = upperLine.replaceAll('O', '0').replaceAll(RegExp(r'[^0-9*]'), '');
         final phoneMatch = phoneRegex.firstMatch(phoneLine);
         
@@ -136,31 +205,22 @@ class _OCRScanPageState extends State<OCRScanPage> {
         } else if (numericMatch != null && bestTrackingCandidate == null) {
             bestTrackingCandidate = numericMatch.group(0);
         } else if (genericMatch != null && bestTrackingCandidate == null) {
-              // avoid common non-tracking lines
               if (!upperLine.contains('ORDER') && !upperLine.contains('ID')) {
                 bestTrackingCandidate = genericMatch.group(0);
               }
         }
 
-        // Enhanced Name Extraction Logic for Shopee labels
-        // Even if the line has numbers, try to extract name
         String nameOnly = upperLine;
-        
-        // Cut off address keywords
         int addressIndex = upperLine.indexOf(RegExp(r'JALAN|LORONG|TAMAN|BUKIT|KG|LOT|NO\.|BLOCK|BLOK|KAMPUNG|BATU|LEVEL|FLOOR|UNIT'));
         if (addressIndex != -1) {
           nameOnly = upperLine.substring(0, addressIndex).trim();
         }
 
-        // Clean leading keywords (Handles common OCR typos like "JAME" for "NAME") because sometimes it cut as half
         String finalPotentialName = _normalizeNameForSearch(nameOnly)
             .replaceFirst(RegExp(r'^(NAME|RECIPIENT|PENERIMA|TO|SHIP TO|BUYER|JAME|TECIPIENT|ENDER)\s+'), '')
             .trim();
 
-        // Core Change: Allow lines with numbers if they look like names
-        // Do not exclude based on isTracking or digits presence
         if (finalPotentialName.length > 3 && finalPotentialName.split(' ').length >= 2) {
-           // Exclude logistics company names
            if (!finalPotentialName.contains('SHOPEE') && !finalPotentialName.contains('LAZADA')) {
               potentialNames.add(finalPotentialName);
            }
@@ -172,28 +232,26 @@ class _OCRScanPageState extends State<OCRScanPage> {
         if (bestPhoneCandidate != null) _phoneController.text = bestPhoneCandidate;
       });
 
-      // === NEW: Check Pre-Alert First ===
       if (bestTrackingCandidate != null) {
          bool preAlertFound = await _checkPreAlert(bestTrackingCandidate);
-         if (preAlertFound) return; // Stop if pre-alert matched
+         if (preAlertFound) return; 
       }
-      // ===================================
 
       bool foundUser = false;
 
       if (bestPhoneCandidate != null) {
-        _showSnackBar('Searching by phone...');
-        foundUser = await _handlePhoneLookup(bestPhoneCandidate!);
+        _showSnackBar('Searching by phone (Fallback)...');
+        foundUser = await _handlePhoneLookup(bestPhoneCandidate);
       } 
       
       if (!foundUser && potentialNames.isNotEmpty) {
-        _showSnackBar('No phone? Trying to match names...');
+        _showSnackBar('Trying to match names (Fallback)...');
         await _handleNameLookup(potentialNames);
       } else if (!foundUser) {
         _showSnackBar('No phone or name detected. Please enter manually.');
       }
     } catch (e) {
-      _showSnackBar('OCR Error: $e');
+      _showSnackBar('Fallback OCR Error: $e');
     }
   }
 
@@ -292,6 +350,26 @@ class _OCRScanPageState extends State<OCRScanPage> {
           title: const Text('OCR Debug Report'),
           content: SingleChildScrollView(
             child: Text(logs.join('\n')),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showGeminiErrorDialog(String errorLine) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Gemini API Error'),
+          content: SingleChildScrollView(
+            child: Text(errorLine),
           ),
           actions: [
             TextButton(

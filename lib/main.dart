@@ -14,10 +14,14 @@ import 'pages/notification_page.dart';
 import 'pages/history_page.dart';
 import 'services/notification_service.dart';
 import 'package:kita_hack_2026/pages/admin/verify_collection_page.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
+  // Load environment variables for Gemini API
+  await dotenv.load(fileName: ".env");
+
   // Use platform-specific initialization
   if (kIsWeb) {
     // For Web
@@ -35,7 +39,7 @@ void main() async {
     // For Android/iOS (uses google-services.json)
     await Firebase.initializeApp();
   }
-  
+
   runApp(const MyApp());
 }
 
@@ -53,12 +57,12 @@ class MyApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(
-            seedColor: Colors.deepOrange, // this one i changed to deep orange 
+            seedColor: Colors.deepOrange, // this one i changed to deep orange
             brightness: Brightness.light, // set as light mode
           ),
 
           useMaterial3: true,
-        //set button pattern
+          //set button pattern
           elevatedButtonTheme: ElevatedButtonThemeData(
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.deepOrange,
@@ -66,12 +70,13 @@ class MyApp extends StatelessWidget {
             ),
           ),
         ),
-
         home: Consumer<AuthProvider>(
           builder: (context, authProvider, _) {
             // Navigate based on authentication status
             if (authProvider.isAuthenticated) {
-              return authProvider.isAdmin ? const AdminDashboard() : const HomePage();
+              return authProvider.isAdmin
+                  ? const AdminDashboard()
+                  : const HomePage();
             } else {
               return const LoginPage();
             }
@@ -93,7 +98,8 @@ class HomePage extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.white, // Match Login Page background
       appBar: AppBar(
-        title: const Text('ParcelKita', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text('ParcelKita',
+            style: TextStyle(fontWeight: FontWeight.bold)),
         centerTitle: true,
         backgroundColor: Colors.deepOrange,
         foregroundColor: Colors.white,
@@ -116,25 +122,28 @@ class HomePage extends StatelessWidget {
                 // Client-side sorting to show latest first without Firestore index
                 notifications = snapshot.data!.docs;
                 notifications.sort((a, b) {
-                   final tA = (a.data() as Map)['timestamp'] as Timestamp?;
-                   final tB = (b.data() as Map)['timestamp'] as Timestamp?;
-                   if (tA == null || tB == null) return 0;
-                   return tB.compareTo(tA);
+                  final tA = (a.data() as Map)['timestamp'] as Timestamp?;
+                  final tB = (b.data() as Map)['timestamp'] as Timestamp?;
+                  if (tA == null || tB == null) return 0;
+                  return tB.compareTo(tA);
                 });
-                
+
                 // Count unread (across all fetched docs)
-                unreadCount = notifications.where((doc) => (doc.data() as Map)['isRead'] == false).length;
+                unreadCount = notifications
+                    .where((doc) => (doc.data() as Map)['isRead'] == false)
+                    .length;
 
                 // Take top 5 for the dropdown
                 if (notifications.length > 5) {
-                   notifications = notifications.sublist(0, 5);
+                  notifications = notifications.sublist(0, 5);
                 }
               }
 
               return PopupMenuButton<String>(
                 offset: const Offset(0, 50),
                 color: Colors.white, // White background for the menu
-                constraints: const BoxConstraints.tightFor(width: 350), // Wider menu
+                constraints:
+                    const BoxConstraints.tightFor(width: 350), // Wider menu
                 icon: Stack(
                   clipBehavior: Clip.none,
                   children: [
@@ -149,10 +158,14 @@ class HomePage extends StatelessWidget {
                             color: Colors.orange.shade200,
                             shape: BoxShape.circle,
                           ),
-                          constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                          constraints:
+                              const BoxConstraints(minWidth: 16, minHeight: 16),
                           child: Text(
                             '$unreadCount',
-                            style: const TextStyle(color: Colors.deepOrange, fontSize: 10, fontWeight: FontWeight.bold),
+                            style: const TextStyle(
+                                color: Colors.deepOrange,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold),
                             textAlign: TextAlign.center,
                           ),
                         ),
@@ -163,7 +176,8 @@ class HomePage extends StatelessWidget {
                   if (value == 'view_all') {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => NotificationPage()),
+                      MaterialPageRoute(
+                          builder: (context) => NotificationPage()),
                     );
                   }
                 },
@@ -174,7 +188,11 @@ class HomePage extends StatelessWidget {
                   items.add(
                     const PopupMenuItem<String>(
                       enabled: false,
-                      child: Text('Recent Notifications', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black, fontSize: 16)),
+                      child: Text('Recent Notifications',
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                              fontSize: 16)),
                     ),
                   );
 
@@ -190,27 +208,32 @@ class HomePage extends StatelessWidget {
                     for (var doc in notifications) {
                       final data = doc.data() as Map<String, dynamic>;
                       final bool isRead = data['isRead'] ?? true;
-                      
+
                       items.add(
                         PopupMenuItem<String>(
                           value: doc.id,
                           onTap: () {
-                             // Mark as read on tap
-                             if (!isRead) {
-                               doc.reference.update({'isRead': true});
-                             }
+                            // Mark as read on tap
+                            if (!isRead) {
+                              doc.reference.update({'isRead': true});
+                            }
                           },
                           child: Container(
                             width: double.infinity,
-                            margin: const EdgeInsets.symmetric(vertical: 4), // Add spacing between items
-                            padding: const EdgeInsets.all(12), // More padding inside
+                            margin: const EdgeInsets.symmetric(
+                                vertical: 4), // Add spacing between items
+                            padding:
+                                const EdgeInsets.all(12), // More padding inside
                             decoration: BoxDecoration(
-                              color: Colors.white, // All notifications are white now
+                              color: Colors
+                                  .white, // All notifications are white now
                               borderRadius: BorderRadius.circular(12),
                               // Distinct styling for unread: Orange border + Shadow
-                              border: isRead 
-                                  ? Border.all(color: Colors.grey.shade200) 
-                                  : Border.all(color: Colors.deepOrange.shade200, width: 2), 
+                              border: isRead
+                                  ? Border.all(color: Colors.grey.shade200)
+                                  : Border.all(
+                                      color: Colors.deepOrange.shade200,
+                                      width: 2),
                               boxShadow: [
                                 if (!isRead)
                                   BoxShadow(
@@ -225,7 +248,7 @@ class HomePage extends StatelessWidget {
                               children: [
                                 Row(
                                   children: [
-                                    if (!isRead) 
+                                    if (!isRead)
                                       Container(
                                         margin: const EdgeInsets.only(right: 8),
                                         width: 8,
@@ -239,7 +262,9 @@ class HomePage extends StatelessWidget {
                                       child: Text(
                                         data['title'] ?? 'Notification',
                                         style: TextStyle(
-                                          fontWeight: isRead ? FontWeight.normal : FontWeight.bold,
+                                          fontWeight: isRead
+                                              ? FontWeight.normal
+                                              : FontWeight.bold,
                                           color: Colors.black87,
                                           fontSize: 14,
                                         ),
@@ -252,7 +277,9 @@ class HomePage extends StatelessWidget {
                                   data['message'] ?? '',
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
+                                  style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey.shade700),
                                 ),
                               ],
                             ),
@@ -270,7 +297,9 @@ class HomePage extends StatelessWidget {
                       child: Center(
                         child: Text(
                           'View All Notifications',
-                          style: TextStyle(color: Colors.deepOrange, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                              color: Colors.deepOrange,
+                              fontWeight: FontWeight.bold),
                         ),
                       ),
                     ),
@@ -281,7 +310,7 @@ class HomePage extends StatelessWidget {
               );
             },
           ),
-          
+
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () => context.read<AuthProvider>().logout(),
@@ -314,12 +343,11 @@ class HomePage extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text('Track your parcels with ease',
-                style: TextStyle(
-                    fontSize: 14, color: Colors.grey.shade600)),
+                style: TextStyle(fontSize: 14, color: Colors.grey.shade600)),
             const SizedBox(height: 48),
-            
+
             // Replaced Notifications Button with StreamBuilder above
-            
+
             _StudentButton(
               title: 'Track Parcel',
               icon: Icons.local_shipping,
@@ -342,7 +370,7 @@ class HomePage extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const OverdueChargesPage(), 
+                    builder: (context) => const OverdueChargesPage(),
                   ),
                 );
               },
@@ -525,7 +553,6 @@ class AdminDashboard extends StatelessWidget {
                   textStyle: const TextStyle(fontSize: 16),
                 ),
               ),
-
             ],
           ),
         ),
@@ -550,7 +577,8 @@ class AdminDashboard extends StatelessWidget {
               foregroundColor: Colors.white,
             ),
             const SizedBox(height: 16),
-             FloatingActionButton.extended( // Add space to force re-render if needed
+            FloatingActionButton.extended(
+              // Add space to force re-render if needed
               heroTag: 'scan',
               onPressed: () {
                 Navigator.push(
