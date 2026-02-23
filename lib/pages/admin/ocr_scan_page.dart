@@ -545,7 +545,8 @@ class _OCRScanPageState extends State<OCRScanPage> {
 
   // Save Parcel to Database
   Future<void> _saveParcel() async {
-    if (_trackingController.text.isEmpty || 
+    final trackingNumber = _trackingController.text.trim();
+    if (trackingNumber.isEmpty || 
         _phoneController.text.isEmpty || 
         _nameController.text.isEmpty ||
         _storageLocationController.text.isEmpty) { // Require Storage Location
@@ -554,9 +555,21 @@ class _OCRScanPageState extends State<OCRScanPage> {
     }
 
     try {
+      // 0. Check for existing 'Pending Pickup' parcel with same tracking number
+      final existingParcels = await FirebaseFirestore.instance
+          .collection('parcels')
+          .where('trackingNumber', isEqualTo: trackingNumber)
+          .where('status', isEqualTo: 'Pending Pickup')
+          .get();
+
+      if (existingParcels.docs.isNotEmpty) {
+        _showSnackBar('This parcel is already in the system (Pending Pickup)!');
+        return;
+      }
+
       // 1. Save Parcel with 'Pending Pickup' status
       DocumentReference parcelRef = await FirebaseFirestore.instance.collection('parcels').add({
-        'trackingNumber': _trackingController.text.trim(),
+        'trackingNumber': trackingNumber,
         'studentName': _nameController.text.trim(),
         'studentId': _idController.text.trim(),
         'phoneNumber': _phoneController.text.trim(),
@@ -573,7 +586,7 @@ class _OCRScanPageState extends State<OCRScanPage> {
         final String notificationMessage = await notificationService.generatePersonalizedMessage(
           studentName: _nameController.text.trim(),
           parcelType: _parcelType,
-          trackingNumber: _trackingController.text.trim(),
+          trackingNumber: trackingNumber,
           storageLocation: _storageLocationController.text.trim(),
         );
 
