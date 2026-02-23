@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart'; // For kIsWeb
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart'; // Added
 import 'package:provider/provider.dart';
@@ -18,10 +19,15 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+<<<<<<< HEAD
 
   // Load environment variables for Gemini API
   await dotenv.load(fileName: ".env");
 
+=======
+  await dotenv.load(fileName: ".env");
+  
+>>>>>>> 3a31eecd47bd868ec63b3421e91fe46de8095450
   // Use platform-specific initialization
   if (kIsWeb) {
     // For Web
