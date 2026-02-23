@@ -85,11 +85,6 @@ class _OCRScanPageState extends State<OCRScanPage> {
 
 
   Future<void> _processImage(XFile image) async {
-    if (kIsWeb) {
-      _showSnackBar('OCR is not supported on Web. Please enter details manually.');
-      return;
-    }
-    
     _showSnackBar('Analyzing image with AI...');
     
     // 1. Try Gemini Vision API First
@@ -169,6 +164,11 @@ class _OCRScanPageState extends State<OCRScanPage> {
     }
 
     // 2. Fallback to ML Kit Text Recognition if Gemini fails or no API key
+    if (kIsWeb) {
+      _showSnackBar('Gemini AI failed, and ML Kit fallback is not supported on Web. Please enter manually.');
+      return;
+    }
+    
     final inputImage = InputImage.fromFile(File(image.path));
     try {
       final recognizedText = await _textRecognizer.processImage(inputImage);
