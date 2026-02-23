@@ -126,7 +126,7 @@ class _PreAlertPageState extends State<PreAlertPage> {
               ElevatedButton(
                 onPressed: _isLoading ? null : _submitPreAlert,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.deepOrange,
+                  backgroundColor: Colors.teal,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
