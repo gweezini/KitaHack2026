@@ -547,10 +547,9 @@ class _OCRScanPageState extends State<OCRScanPage> {
   Future<void> _saveParcel() async {
     final trackingNumber = _trackingController.text.trim();
     if (trackingNumber.isEmpty || 
-        _phoneController.text.isEmpty || 
         _nameController.text.isEmpty ||
-        _storageLocationController.text.isEmpty) { // Require Storage Location
-      _showSnackBar('Tracking, phone, name and storage location are required!');
+        _storageLocationController.text.isEmpty) { // Phone and ID are optional for orphan parcels
+      _showSnackBar('Tracking number, Name, and Storage Location are required!');
       return;
     }
 
