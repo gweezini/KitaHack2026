@@ -13,6 +13,7 @@ import 'pages/admin/pending_parcels_page.dart';
 import 'pages/track_parcel_page.dart';
 import 'pages/notification_page.dart';
 import 'pages/history_page.dart';
+import 'pages/pre_alert_page.dart';
 import 'services/notification_service.dart';
 import 'package:kita_hack_2026/pages/admin/verify_collection_page.dart';
 
@@ -357,6 +358,20 @@ class HomePage extends StatelessWidget {
                   context,
                   MaterialPageRoute(
                     builder: (context) => const TrackParcelPage(),
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 16),
+            _StudentButton(
+              title: 'Fast Track Claim',
+              icon: Icons.bolt,
+              color: Colors.teal,
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const PreAlertPage(), 
                   ),
                 );
               },

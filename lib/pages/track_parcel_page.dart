@@ -121,25 +121,6 @@ class _TrackParcelPageState extends State<TrackParcelPage> {
                     });
                   },
                 ),
-                const SizedBox(height: 10),
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton.icon(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const PreAlertPage()),
-                      );
-                    },
-                    icon: const Icon(Icons.notification_add, size: 18),
-                    label: const Text('Expecting a parcel? Pre-alert us!'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.deepOrange,
-                      side: const BorderSide(color: Colors.deepOrange),
-                    ),
-                  ),
-                ),
               ],
             ),
           ),
@@ -178,179 +159,215 @@ class _TrackParcelPageState extends State<TrackParcelPage> {
                           }
 
                           final parcels = snapshot.data!.docs;
-                          
+
                           // Calculate Total Count and Total Charges
                           int totalParcels = 0;
                           double totalCharges = 0.0;
-                          final List<QueryDocumentSnapshot> filteredParcels = [];
+                          final List<QueryDocumentSnapshot> filteredParcels =
+                              [];
 
                           for (var doc in parcels) {
                             final parcel = doc.data() as Map<String, dynamic>;
-                            final trackingNumber = parcel['trackingNumber'] as String? ?? '';
-                            
-                            if (_searchQuery.isNotEmpty && !trackingNumber.contains(_searchQuery)) {
+                            final trackingNumber =
+                                parcel['trackingNumber'] as String? ?? '';
+
+                            if (_searchQuery.isNotEmpty &&
+                                !trackingNumber.contains(_searchQuery)) {
                               continue;
                             }
-                            
+
                             filteredParcels.add(doc);
                             totalParcels++;
                             totalCharges += _calculateOverdueCharge(
-                                parcel['type'] as String? ?? 'Parcel', 
+                                parcel['type'] as String? ?? 'Parcel',
                                 parcel['arrivalDate'] as Timestamp?);
                           }
 
-                          return Column(
-                            children: [
-                              // === SUMMARY CARD ===
-                              Container(
-                                margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                                padding: const EdgeInsets.all(16.0),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(12),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.grey.withOpacity(0.2),
-                                      spreadRadius: 2,
-                                      blurRadius: 5,
-                                      offset: const Offset(0, 3),
-                                    ),
-                                  ],
-                                  border: Border.all(color: Colors.blue.shade100, width: 2),
-                                ),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                                  children: [
-                                    Expanded(
-                                      child: Column(
-                                        children: [
-                                          const Text('Pending Parcels',
-                                              textAlign: TextAlign.center,
-                                              style: TextStyle(
-                                                  color: Colors.grey,
-                                                  fontSize: 13)),
-                                          const SizedBox(height: 4),
-                                          Text(
-                                            '$totalParcels',
-                                            style: const TextStyle(
-                                                fontSize: 24,
-                                                fontWeight: FontWeight.bold,
-                                                color: Colors.blue),
-                                          ),
-                                        ],
+                          return SingleChildScrollView(
+                            child: Column(
+                              children: [
+                                // === SUMMARY CARD ===
+                                Container(
+                                  margin: const EdgeInsets.symmetric(
+                                      horizontal: 16.0, vertical: 8.0),
+                                  padding: const EdgeInsets.all(16.0),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(12),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.grey.withOpacity(0.2),
+                                        spreadRadius: 2,
+                                        blurRadius: 5,
+                                        offset: const Offset(0, 3),
                                       ),
-                                    ),
-                                    Container(
-                                        height: 40,
-                                        width: 1,
-                                        color: Colors.grey.shade300),
-                                    Expanded(
-                                      child: Column(
-                                        children: [
-                                          const Text('Total Amount Due',
-                                              textAlign: TextAlign.center,
-                                              style: TextStyle(
-                                                  color: Colors.grey,
-                                                  fontSize: 13)),
-                                          const SizedBox(height: 4),
-                                          FittedBox(
-                                            fit: BoxFit.scaleDown,
-                                            child: Text(
-                                              'RM ${totalCharges.toStringAsFixed(2)}',
-                                              style: TextStyle(
+                                    ],
+                                    border: Border.all(
+                                        color: Colors.blue.shade100, width: 2),
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceAround,
+                                    children: [
+                                      Expanded(
+                                        child: Column(
+                                          children: [
+                                            const Text('Pending Parcels',
+                                                textAlign: TextAlign.center,
+                                                style: TextStyle(
+                                                    color: Colors.grey,
+                                                    fontSize: 13)),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              '$totalParcels',
+                                              style: const TextStyle(
                                                   fontSize: 24,
                                                   fontWeight: FontWeight.bold,
-                                                  color: totalCharges > 0
-                                                      ? Colors.red.shade700
-                                                      : Colors.green),
+                                                  color: Colors.blue),
                                             ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              // === PARCEL LIST ===
-                              Expanded(
-                                child: filteredParcels.isEmpty
-                                  ? const Center(child: Text('No parcels match your search.'))
-                                  : ListView.builder(
-                                  itemCount: filteredParcels.length,
-                                  itemBuilder: (context, index) {
-                                    final parcelDoc = filteredParcels[index];
-                              final parcel =
-                                  parcelDoc.data() as Map<String, dynamic>;
-                              final trackingNumber =
-                                  parcel['trackingNumber'] as String? ?? 'N/A';
-                              final arrivalDate =
-                                  parcel['arrivalDate'] as Timestamp?;
-                              final type =
-                                  parcel['type'] as String? ?? 'Parcel';
-
-                              if (_searchQuery.isNotEmpty &&
-                                  !trackingNumber.contains(_searchQuery)) {
-                                return const SizedBox.shrink();
-                              }
-
-                              String arrivalDateFormatted = 'Unknown';
-                              if (arrivalDate != null) {
-                                arrivalDateFormatted =
-                                    DateFormat('d MMM yyyy, h:mm a')
-                                        .format(arrivalDate.toDate());
-                              }
-
-                              final charge = _calculateOverdueCharge(type, arrivalDate);
-
-                              return Card(
-                                margin: const EdgeInsets.symmetric(
-                                    horizontal: 16, vertical: 8),
-                                child: ListTile(
-                                  leading: CircleAvatar(
-                                    backgroundColor: Colors.blue.shade100,
-                                    child: const Icon(Icons.local_shipping,
-                                        color: Colors.blue),
-                                  ),
-                                  title: Text(trackingNumber),
-                                  subtitle: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text('Type: $type'),
-                                      Text('Arrived: $arrivalDateFormatted'),
-                                      if (charge > 0)
-                                        Padding(
-                                          padding: const EdgeInsets.only(top: 4.0),
-                                          child: Text(
-                                            'Fee: RM ${charge.toStringAsFixed(2)}',
-                                            style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
-                                          ),
+                                          ],
                                         ),
+                                      ),
+                                      Container(
+                                          height: 40,
+                                          width: 1,
+                                          color: Colors.grey.shade300),
+                                      Expanded(
+                                        child: Column(
+                                          children: [
+                                            const Text('Total Amount Due',
+                                                textAlign: TextAlign.center,
+                                                style: TextStyle(
+                                                    color: Colors.grey,
+                                                    fontSize: 13)),
+                                            const SizedBox(height: 4),
+                                            FittedBox(
+                                              fit: BoxFit.scaleDown,
+                                              child: Text(
+                                                'RM ${totalCharges.toStringAsFixed(2)}',
+                                                style: TextStyle(
+                                                    fontSize: 24,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: totalCharges > 0
+                                                        ? Colors.red.shade700
+                                                        : Colors.green),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
                                     ],
                                   ),
-                                  trailing: const Icon(Icons.qr_code_scanner),
-                                  onTap: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => VerifyParcelPage(
-                                          parcelId: parcelDoc.id,
-                                          trackingNumber: trackingNumber,
-                                          arrivalDate: arrivalDate,
-                                          type: type,
-                                        ),
+                                ),
+                                // === PARCEL LIST ===
+                                filteredParcels.isEmpty
+                                    ? const Padding(
+                                        padding: EdgeInsets.all(32.0),
+                                        child: Center(
+                                            child: Text(
+                                                'No parcels match your search.')),
+                                      )
+                                    : ListView.builder(
+                                        shrinkWrap: true,
+                                        physics:
+                                            const NeverScrollableScrollPhysics(),
+                                        itemCount: filteredParcels.length,
+                                        itemBuilder: (context, index) {
+                                          final parcelDoc =
+                                              filteredParcels[index];
+                                          final parcel = parcelDoc.data()
+                                              as Map<String, dynamic>;
+                                          final trackingNumber =
+                                              parcel['trackingNumber']
+                                                      as String? ??
+                                                  'N/A';
+                                          final arrivalDate =
+                                              parcel['arrivalDate']
+                                                  as Timestamp?;
+                                          final type =
+                                              parcel['type'] as String? ??
+                                                  'Parcel';
+
+                                          if (_searchQuery.isNotEmpty &&
+                                              !trackingNumber
+                                                  .contains(_searchQuery)) {
+                                            return const SizedBox.shrink();
+                                          }
+
+                                          String arrivalDateFormatted =
+                                              'Unknown';
+                                          if (arrivalDate != null) {
+                                            arrivalDateFormatted = DateFormat(
+                                                    'd MMM yyyy, h:mm a')
+                                                .format(arrivalDate.toDate());
+                                          }
+
+                                          final charge =
+                                              _calculateOverdueCharge(
+                                                  type, arrivalDate);
+
+                                          return Card(
+                                            margin: const EdgeInsets.symmetric(
+                                                horizontal: 16, vertical: 8),
+                                            child: ListTile(
+                                              leading: CircleAvatar(
+                                                backgroundColor:
+                                                    Colors.blue.shade100,
+                                                child: const Icon(
+                                                    Icons.local_shipping,
+                                                    color: Colors.blue),
+                                              ),
+                                              title: Text(trackingNumber),
+                                              subtitle: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Text('Type: $type'),
+                                                  Text(
+                                                      'Arrived: $arrivalDateFormatted'),
+                                                  if (charge > 0)
+                                                    Padding(
+                                                      padding:
+                                                          const EdgeInsets.only(
+                                                              top: 4.0),
+                                                      child: Text(
+                                                        'Fee: RM ${charge.toStringAsFixed(2)}',
+                                                        style: const TextStyle(
+                                                            color: Colors.red,
+                                                            fontWeight:
+                                                                FontWeight
+                                                                    .bold),
+                                                      ),
+                                                    ),
+                                                ],
+                                              ),
+                                              trailing: const Icon(
+                                                  Icons.qr_code_scanner),
+                                              onTap: () {
+                                                Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        VerifyParcelPage(
+                                                      parcelId: parcelDoc.id,
+                                                      trackingNumber:
+                                                          trackingNumber,
+                                                      arrivalDate: arrivalDate,
+                                                      type: type,
+                                                    ),
+                                                  ),
+                                                );
+                                              },
+                                            ),
+                                          );
+                                        },
                                       ),
-                                    );
-                                  },
-                                  ),
-                                );
-                              },
+                              ],
                             ),
-                          ),
-                        ],
-                      );
-                    },
-                  ),
-      ),
+                          );
+                        },
+                      ),
+          ),
         ],
       ),
     );
@@ -395,8 +412,7 @@ class _VerifyParcelPageState extends State<VerifyParcelPage> {
       if (!snapshot.exists) {
         // Document was deleted while listening.
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text('This parcel is no longer available.')),
+          const SnackBar(content: Text('This parcel is no longer available.')),
         );
         Navigator.of(context).pop();
         return;

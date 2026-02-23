@@ -63,7 +63,7 @@ class _PreAlertPageState extends State<PreAlertPage> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Pre-Alert submitted successfully!')),
+          const SnackBar(content: Text('Fast Track Claim setup successfully!')),
         );
         Navigator.pop(context);
       }
@@ -82,8 +82,8 @@ class _PreAlertPageState extends State<PreAlertPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Pre-Alert Parcel'),
-        backgroundColor: Colors.deepOrange,
+        title: const Text('Fast Track Claim Setup'),
+        backgroundColor: Colors.teal,
         foregroundColor: Colors.white,
       ),
       body: Padding(
@@ -138,7 +138,7 @@ class _PreAlertPageState extends State<PreAlertPage> {
                             color: Colors.white, strokeWidth: 2),
                       )
                     : const Text(
-                        'SUBMIT PRE-ALERT',
+                        'SET UP FAST TRACK CLAIM',
                         style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                       ),
               ),
