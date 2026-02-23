@@ -12,7 +12,7 @@ class NotificationGeneratorService {
   }) async {
     // Default message in case of any error or if API key is missing
     String defaultMessage =
-        'hi';
+        'Hi \$studentName! Your \$parcelType (Tracking: \$trackingNumber) has arrived! Please use your QR code in the app to claim it.';
 
     if (_apiKey == null || _apiKey!.isEmpty) {
       print('GEMINI_API_KEY not found in .env file. Using default notification.');
@@ -20,19 +20,28 @@ class NotificationGeneratorService {
     }
 
     try {
-      final model = GenerativeModel(model: 'gemini-1.5-flash', apiKey: _apiKey!);
-      final prompt =
-          'Generate a warm, friendly, and humourous (max 30 words) notification for a student named $studentName with $parcelType with $trackingNumber with storage location: $storageLocation';
+      final model = GenerativeModel(model: 'gemini-2.5-flash', apiKey: _apiKey!);
+      
+      final prompt = '''
+        You are an enthusiastic and friendly university parcel room assistant bot.
+        A new \$parcelType has just arrived for a student named \$studentName. 
+        The tracking number is \$trackingNumber.
+        
+        Write a very short, warm push notification (around 20-30 words) to tell them it's here.
+        Remind them to use the QR code in the app to claim it.
+        Keep it natural and energetic. Do NOT mention the storage location (\$storageLocation). 
+        Do NOT use emojis.
+      ''';
 
       final response = await model.generateContent([Content.text(prompt)]);
 
       if (response.text != null && response.text!.isNotEmpty) {
-        return response.text!;
+        return response.text!.trim();
       } else {
         return defaultMessage;
       }
     } catch (e) {
-      print("Gemini generation error: $e");
+      print("Gemini generation error: \$e");
       return defaultMessage;
     }
   }

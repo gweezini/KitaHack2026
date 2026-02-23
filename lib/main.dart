@@ -15,19 +15,13 @@ import 'pages/notification_page.dart';
 import 'pages/history_page.dart';
 import 'services/notification_service.dart';
 import 'package:kita_hack_2026/pages/admin/verify_collection_page.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-<<<<<<< HEAD
 
   // Load environment variables for Gemini API
   await dotenv.load(fileName: ".env");
 
-=======
-  await dotenv.load(fileName: ".env");
-  
->>>>>>> 3a31eecd47bd868ec63b3421e91fe46de8095450
   // Use platform-specific initialization
   if (kIsWeb) {
     // For Web
