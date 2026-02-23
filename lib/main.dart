@@ -134,9 +134,9 @@ class HomePage extends StatelessWidget {
                     .where((doc) => (doc.data() as Map)['isRead'] == false)
                     .length;
 
-                // Take top 5 for the dropdown
-                if (notifications.length > 5) {
-                  notifications = notifications.sublist(0, 5);
+                // Take top 3 for the dropdown to fit mobile screens better
+                if (notifications.length > 3) {
+                  notifications = notifications.sublist(0, 3);
                 }
               }
 
