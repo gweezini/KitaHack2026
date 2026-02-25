@@ -27,4 +27,4 @@ It:
 - Tracks overdue charges transparently  
 - Synchronizes all updates in real-time
 
-ParcelKita transforms manual campus logistics into a centralized intelligent system.
+ParcelKita transforms manual campus logistics into a centralized intelligent system.  
