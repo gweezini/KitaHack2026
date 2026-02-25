@@ -167,13 +167,15 @@ Steps:
 2. Enable Firestore Database (Test mode for development)  
 3. Enable Authentication (Email/Password)  
 4. Run:  
-> flutterfire configure  
+> flutterfire configure
+
 This will generate the required firebase_options.dart file.
 
 3. Gemini API Key Setup  
 To ensure API security, ParcelKita uses flutter_dotenv.  
 Create a .env file in the project root:  
-> GEMINI_API_KEY=YOUR_GEMINI_API_KEY  
+> GEMINI_API_KEY=YOUR_GEMINI_API_KEY
+
 The .env file is excluded via .gitignore to prevent key exposure.
 
 4. Run the App  
