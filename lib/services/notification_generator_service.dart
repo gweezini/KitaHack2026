@@ -28,6 +28,7 @@ class NotificationGeneratorService {
         The tracking number is \$trackingNumber.
         
         Write a very short, warm push notification (around 20-30 words) to tell them it's here.
+        CRITICAL: You MUST remind them to "collect it within 3 days to avoid late charges."
         Remind them to use the QR code in the app to claim it.
         Keep it natural and energetic. Do NOT mention the storage location (\$storageLocation). 
         Do NOT use emojis.
