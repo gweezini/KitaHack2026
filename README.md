@@ -1,4 +1,4 @@
-# Kitahack2026  
+<img width="1121" height="509" alt="image" src="https://github.com/user-attachments/assets/d934bde1-f3ee-4e9f-baec-4dd9a15f4e26" /># Kitahack2026  
 # Group Name: Chill Guys  
 
 ## Problem Statement  
@@ -133,3 +133,26 @@ Estimated improvements based on testing:
   
 Firebase event tracking logs: Scan timestamps, matching speed and notification delivery events  
 
+## Expected Impact  
+Estimated reduction based on initial user testing   
+With ParcelKita, we aim to:  
+- 60% reduction in unmatched parcels  
+- 50% faster parcel logging  
+- 40% fewer overdue disputes  
+- Improved overall parcel flow  
+  
+Measured using Firebase event logs and current system testing  
+
+## Scalability  
+Future improvements may include:  
+- Public parcel search for unmatched parcels
+To further reduce unmatched parcels, ParcelKita’s current architecture allows the introduction of a Public Parcel Search feature. In scenarios where parcels cannot be automatically matched (e.g., missing phone numbers or nickname usage), unmatched entries can be stored in a searchable list. Students would be able to search and claim their parcels using tracking IDs.This extension enhances fairness and ensures parcels remain retrievable without significantly altering the existing system structure. 
+- Smart locker systems
+ParcelKita’s scanning and notification workflow allows potential integration with smart locker systems. By linking parcel status updates with locker assignment logic, the system could support automated pickup processes where students receive secure access codes upon parcel arrival.This extension builds upon the existing real-time notification and tracking structure without requiring fundamental redesign.  
+- Parcel analytics dashboard for admins  
+Using Firebase event logs, ParcelKita can be extended to provide basic analytics for administrative insights.  
+This may include metrics such as: Average pickup duration， frequency of overdue parcels and peak parcel arrival periods  
+Such analytics could assist staff in improving storage planning and operational efficiency.
+
+## Project Setup  
+1. Clone & Install Dependencies  
