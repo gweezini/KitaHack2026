@@ -154,7 +154,45 @@ This may include metrics such as: Average pickup duration， frequency of overdu
 Such analytics could assist staff in improving storage planning and operational efficiency.
 
 ## Project Setup  
-1. Clone & Install Dependencies
-> git clone https://github.com/gweezini/KitaHack2026.git
-cd KitaHack2026
-flutter pub get
+1. Clone & Install Dependencies  
+> git clone https://github.com/gweezini/KitaHack2026.git  
+> cd KitaHack2026  
+> flutter pub get
+
+2. Firebase Configuration  
+ParcelKita relies on Firebase Authentication and Cloud Firestore.  
+Steps:  
+1. Create a Firebase project  
+2. Enable Firestore Database (Test mode for development)  
+3. Enable Authentication (Email/Password)  
+4. Run:  
+> flutterfire configure  
+This will generate the required firebase_options.dart file.
+
+3. Gemini API Key Setup  
+To ensure API security, ParcelKita uses flutter_dotenv.  
+Create a .env file in the project root:  
+> GEMINI_API_KEY=YOUR_GEMINI_API_KEY  
+The .env file is excluded via .gitignore to prevent key exposure.
+
+4. Run the App  
+> flutter run
+
+Platform Notes:  
+ParcelKita implements a dual-layer AI architecture:  
+- Google Gemini (Cloud AI)  
+- Google ML Kit (On-device fallback)  
+
+⚠ ML Kit Text Recognition relies on native Android/iOS binaries and is not supported on Flutter Web.  
+When running on Web, the system automatically bypasses ML Kit and relies entirely on Gemini.  
+To experience the offline OCR fallback, please run the app on a physical Android.  
+
+## Demo Video:  
+YouTube Link:  
+
+The demo showcases:  
+- Admin scanning workflow  
+- AI extraction  
+- Fast Track matching  
+- Student notification  
+- Real-time status update  
