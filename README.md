@@ -1,4 +1,3 @@
-<img width="1121" height="509" alt="image" src="https://github.com/user-attachments/assets/d934bde1-f3ee-4e9f-baec-4dd9a15f4e26" /># Kitahack2026  
 # Group Name: Chill Guys  
 
 ## Problem Statement  
@@ -155,4 +154,7 @@ This may include metrics such as: Average pickup duration， frequency of overdu
 Such analytics could assist staff in improving storage planning and operational efficiency.
 
 ## Project Setup  
-1. Clone & Install Dependencies  
+1. Clone & Install Dependencies
+> git clone https://github.com/gweezini/KitaHack2026.git
+cd KitaHack2026
+flutter pub get
