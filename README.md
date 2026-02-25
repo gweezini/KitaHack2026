@@ -28,3 +28,27 @@ It:
 - Synchronizes all updates in real-time
 
 ParcelKita transforms manual campus logistics into a centralized intelligent system.  
+
+## AI Integration  
+ParcelKita meaningfully integrates Google AI technologies:  
+- Google Gemini 2.5 Flash  
+- Google ML Kit 
+- Gemini Text Generation  
+AI directly automates data extraction, matching, and communication.
+
+## SDG Alignment  
+### SDG 9 – Industry, Innovation & Infrastructure  
+Digitizes and modernizes campus logistics infrastructure  
+### SDG 11 – Sustainable Cities & Communities  
+Reduces storage congestion and improves fairness in shared campus living  
+### SDG 12 – Responsible Consumption  
+Minimizes returned parcels and reduces manual paper logging  
+
+## Google Technology Utilization  
+### Google Gemini 2.5 Flash (Cloud AI)  
+- We used Gemini Vision to convert messy, unstructured parcel labels into structured JSON data  
+#### Effect:  
+- Eliminates manual data entry  
+- Reduces logging errors  
+- Automatically extracts tracking ID, name, and phone number  
+
