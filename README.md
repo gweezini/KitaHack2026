@@ -3,17 +3,16 @@
 
 ## Problem Statement  
 ![Problems](images/Problems.png)  
-Although online shopping has become common among university students, campus parcel management still relies on manual methods such as WhatsApp messages to notify students and some students have to check the e-commerce app for updates. There is no centralized and automatic notification system which may cause students to miss updates and forget their purchases or collect their parcels late. This sometimes results in penalty charges. Overall, this reflects the lack of proper communication between courier delivery updates and campus parcel management.  
-
-## Getting Started  
-
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+With the rapid growth of e-commerce, university parcel collection systems remain largely manual and fragmented.  
+- Across multiple Malaysian universities:  
+- Notifications are sent via WhatsApp (individual or group-based)  
+- Students must manually check Shopee or Lazada for delivery updates  
+- Some parcels arrive without phone numbers  
+- Students often use nicknames when ordering online  
+- Late pickup penalties are applied even when notifications are missed  
+As a result:  
+- Parcels become unmatched (“orphan parcels”)  
+- Storage spaces become congested  
+- Administrative workload increases  
+- Students experience frustration and perceive the system as unfair  
+- There is currently no centralized intelligent system to automate parcel logging, recipient matching, and notification delivery.  
