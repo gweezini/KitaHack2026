@@ -155,6 +155,7 @@ Such analytics could assist staff in improving storage planning and operational 
 
 ## Project Setup  
 1. Clone & Install Dependencies  
+Run the following step by step  
 > git clone https://github.com/gweezini/KitaHack2026.git  
 > cd KitaHack2026  
 > flutter pub get
