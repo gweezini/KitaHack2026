@@ -110,19 +110,19 @@ Everything connects within seconds
 ## User Testing & Iteration   
 We conducted testing with: 3 university students and 1 admin staff  
 #### Feedback 1: Students felt penalties were unfair when no notification was received  
-#### Improvement: Added transparent overdue breakdown and notification timestamp  
+Improvement: Added transparent overdue breakdown and notification timestamp  
 
 #### Feedback 2: Staff struggled when parcels arrived without phone numbers   
-#### Improvement: Implemented Fast Track Claim system  
+Improvement: Implemented Fast Track Claim system  
 
 #### Feedback 3: Manual logging consumed too much time  
-#### Improvement: Adopted AI-based structured extraction  
+Improvement: Adopted AI-based structured extraction  
 
 ## Technical Challenges & Solutions  
 #### Challenge 1: Traditional OCR returned unstructured text blocks  
-#### Solution: Shifted to Gemini Vision for structured JSON extraction  
+Solution: Shifted to Gemini Vision for structured JSON extraction  
 #### Challenge 2: ML Kit incompatible with Web platform  
-#### Solution: Implemented platform checks and fallback logic to Gemini Cloud for Web builds  
+Solution: Implemented platform checks and fallback logic to Gemini Cloud for Web builds  
 
 ## Success Metrics  
 Estimated improvements based on testing:  
