@@ -146,7 +146,7 @@ Measured using Firebase event logs and current system testing
 Future improvements may include:  
 - Public parcel search for unmatched parcels  
 To further reduce unmatched parcels, ParcelKita’s current architecture allows the introduction of a Public Parcel Search feature. In scenarios where parcels cannot be automatically matched (e.g., missing phone numbers or nickname usage), unmatched entries can be stored in a searchable list. Students would be able to search and claim their parcels using tracking IDs.This extension enhances fairness and ensures parcels remain retrievable without significantly altering the existing system structure. 
-- Smart locker systems 
+- Smart locker systems  
 ParcelKita’s scanning and notification workflow allows potential integration with smart locker systems. By linking parcel status updates with locker assignment logic, the system could support automated pickup processes where students receive secure access codes upon parcel arrival.This extension builds upon the existing real-time notification and tracking structure without requiring fundamental redesign.  
 - Parcel analytics dashboard for admins  
 Using Firebase event logs, ParcelKita can be extended to provide basic analytics for administrative insights.  
