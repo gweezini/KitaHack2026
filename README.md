@@ -1,5 +1,7 @@
 # Group Name: Chill Guys  
 
+## Project Overview  
+ParcelKita is an AI-powered campus parcel management system designed to eliminate manual logging, ophan parcels ans unfair penalties through dual layered AI integration and real time cloud synchronization.  
 ## Problem Statement  
 ![Problems](images/Problems.png)  
 With the rapid growth of e-commerce, university parcel collection systems remain largely manual and fragmented.  
@@ -82,7 +84,7 @@ ParcelKita follows a Dual-Layer AI Architecture:
 #### Database Layer   
 - Firebase Authentication  
 - Firebase Cloud Firestore  
-#### Firebase Cloud Firestore   
+#### Presentation Layer     
 - Flutter Admin Interface  
 - Flutter Student Interface  
 
@@ -141,7 +143,7 @@ Based on initial prototype testing, ParcelKita aims to:
 - Decrease penalty-related disputes by around 40%  
 - Improve overall parcel flow transparency    
 
-## Scalability  
+## Scalability and Future Roadmap 
 Future improvements may include:  
 #### Public parcel search for unmatched parcels  
 To further reduce unmatched parcels, ParcelKita’s current architecture allows the introduction of a Public Parcel Search feature. In scenarios where parcels cannot be automatically matched (e.g., missing phone numbers or nickname usage), unmatched entries can be stored in a searchable list. Students would be able to search and claim their parcels using tracking IDs.This extension enhances fairness and ensures parcels remain retrievable without significantly altering the existing system structure. 
