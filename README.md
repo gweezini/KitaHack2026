@@ -125,21 +125,21 @@ Solution: Shifted to Gemini Vision for structured JSON extraction
 Solution: Implemented platform checks and fallback logic to Gemini Cloud for Web builds  
 
 ## Success Metrics  
-The system tracks performance using measurable indicators:
-	•	Average parcel logging time (seconds per scan)
-	•	Matching latency (time from scan to user match)
-	•	Percentage of unmatched parcels
-	•	Overdue rate (%)
-	•	Notification delivery timestamp logs
+The system tracks performance using measurable indicators:  
+- Average parcel logging time (seconds per scan)  
+- Matching latency (time from scan to user match)  
+- Percentage of unmatched parcels  
+- Overdue rate  
+- Notification delivery timestamp logs  
 
-Data is collected through Firebase event tracking.
+Data is collected through Firebase event tracking.  
 
 ## Expected Impact  
-Based on initial prototype testing, ParcelKita aims to:
-	•	Reduce unmatched parcels by up to 60%
-	•	Improve logging efficiency by approximately 50%
-	•	Decrease penalty-related disputes by around 40%
-	•	Improve overall parcel flow transparency  
+Based on initial prototype testing, ParcelKita aims to:    
+- Reduce unmatched parcels by up to 60%  
+- Improve logging efficiency by approximately 50%  
+- Decrease penalty-related disputes by around 40%  
+- Improve overall parcel flow transparency    
 
 ## Scalability  
 Future improvements may include:  
