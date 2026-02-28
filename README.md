@@ -193,7 +193,7 @@ When running on Web, the system automatically bypasses ML Kit and relies entirel
 To experience the offline OCR fallback, please run the app on a physical Android.  
 
 ## Demo Video:  
-YouTube Link:  
+YouTube Link:  https://youtu.be/17MouTStAXI. 
 
 The demo showcases:  
 - Admin scanning workflow  
